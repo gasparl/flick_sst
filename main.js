@@ -191,33 +191,6 @@ function ending() {
     upload();
 }
 
-// get readable current date and time
-function neat_date() {
-    let m = new Date();
-    return m.getFullYear() + "_" +
-        ("0" + (m.getMonth() + 1)).slice(-2) + "" +
-        ("0" + m.getDate()).slice(-2) + "_" +
-        ("0" + m.getHours()).slice(-2) + "" +
-        ("0" + m.getMinutes()).slice(-2);
-}
-
-// order randomization function
-function shuffle(arr) {
-    let array = JSON.parse(JSON.stringify(arr));
-    let newarr = [];
-    let currentIndex = array.length,
-        temporaryValue,
-        randomIndex;
-    while (0 !== currentIndex) {
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex -= 1;
-        temporaryValue = array[currentIndex];
-        array[currentIndex] = array[randomIndex];
-        newarr[currentIndex] = array[randomIndex];
-        array[randomIndex] = temporaryValue;
-    }
-    return newarr;
-}
 
 // function to download (save) results data as a text file
 function dl_as_file() {
