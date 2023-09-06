@@ -20,8 +20,12 @@ document.addEventListener("DOMContentLoaded", function() {
     // });
     date_time = neat_date();
     heads.push("start");
-    cols.push(Math.round(DT.now() * 100) / 100);
+    cols.push(Math.round(performance.now() * 100) / 100);
     jscd_text = 'client\t' + heads.join('/') + '\t' + cols.join('/');
+
+    // startpage
+    document.getElementById('instructions_id').style.display = 'block';
+    // default: intro_id | instructions_id | task_id | end_id
 });
 
 function begin() {
@@ -146,7 +150,7 @@ function store_trial() {
         current_stim.ssd,
         disp_start,
         disp_stop,
-        Math.round(DT.now() * 100) / 100
+        Math.round(performance.now() * 100) / 100
     ].join('\t') + '\n';
     if (allstims.length > 0) {
         next_trial();

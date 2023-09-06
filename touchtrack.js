@@ -54,26 +54,7 @@ document.addEventListener("DOMContentLoaded", function() {
     //     cancel();
     //     return;
     // }
-    go(); // for demo
 
-    const el1 = document.getElementById('btn_test_id');
-    el1.addEventListener('touchstart', function(evt) {
-        evt.preventDefault();
-        document.getElementById('btn_test_id').classList.add("pressd");
-        setTimeout(() => {
-            if (document.getElementById('pretest_id').style.display !== 'none') {
-                cancel();
-                return;
-            }
-        }, 3000);
-    });
-    el1.addEventListener('touchmove', function(evt) {
-        evt.preventDefault();
-        const amplitude = evt.changedTouches[0].force; // TODO
-        if (amplitude > 0 && amplitude < 1) {
-            go();
-        }
-    });
 });
 
 const cancel = function() {
@@ -84,11 +65,6 @@ const cancel = function() {
         full_data = jscd_text + '\t' + date_time + '\n';
         upload();
     }
-};
-
-const go = function() {
-    document.getElementById('pretest_id').style.display = 'none';
-    document.getElementById('intro_id').style.display = 'block';
 };
 
 const get_coords_left = function(evt) {

@@ -13,6 +13,18 @@ button {
     font-size: 30px;
 }
 
+.frame_class {
+    border: 1px solid #7d7d7d;
+    top: 50%;
+    left: 50%;
+    height: 360px;
+    width: 640px;
+    position: fixed;
+    transform: translate(-50%, -50%);
+    background-color: #861919;
+
+}
+
 .longtext {
     width: 80%;
     margin: auto;
