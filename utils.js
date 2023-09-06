@@ -87,9 +87,7 @@ const to_sec = function(num) {
 // enter fullscreen mode [n19]
 const fullscreen_on = function(doit = false) {
     document.getElementById('screen_feed').style.display = 'none';
-    if (doit != true && (misc.demo || typeof sim_user === "function")) {
-        return;
-    }
+
     const element = document.documentElement;
     if (element.requestFullscreen) { //W3C standard
         element.requestFullscreen();
@@ -106,9 +104,7 @@ const fullscreen_on = function(doit = false) {
 
 // exit full screen
 const fullscreen_off = function() {
-    if (misc.demo) {
-        return;
-    }
+
     if (document.exitFullscreen) { //W3C standard
         document.exitFullscreen();
     } else if (document.webkitExitFullscreen) { //Chrome and Safari

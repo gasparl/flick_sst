@@ -227,7 +227,7 @@
 
     function getGlRenderer() {
         if (glRenderer == null) {
-            debugInfo = getGl().getExtension('WEBGL_debug_renderer_info');
+            debugInfo = getGl().getExtension('RENDERER');
             glRenderer = debugInfo == null ? 'unknown' : getGl().getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
         }
 

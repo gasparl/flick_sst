@@ -88,7 +88,7 @@ button {
 
 .container {
     position: fixed;
-    border: 1px 0 solid #999;
+    border: 1px solid #999;
     background-color: #c0c0c0;
     top: 10px;
     width: 20px;
