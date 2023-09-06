@@ -25,6 +25,13 @@ button {
 
 }
 
+#frame_demo {
+    position: relative;
+    transform: none;
+    left: auto;
+    margin: 0 auto;
+}
+
 .longtext {
     width: 80%;
     margin: auto;
@@ -99,18 +106,19 @@ button {
 }
 
 .container:before {
-  content: '';
-  position: absolute;
-  top: 75%;
-  left: 0;
-  border-top: 2px solid black;
-  background: black;
-  width: 100%;
-  transform: translateY(-50%);
+    content: '';
+    position: absolute;
+    top: 75%;
+    left: 0;
+    border-top: 2px solid black;
+    background: black;
+    width: 100%;
+    transform: translateY(-50%);
 }
+
 .container:after {
-  content: '75%';
-  position: absolute;
-  top: 75%;
-  transform: translate(-110%, -50%);
+    content: '75%';
+    position: absolute;
+    top: 75%;
+    transform: translate(-110%, -50%);
 }
