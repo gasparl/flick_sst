@@ -26,6 +26,11 @@ document.addEventListener("DOMContentLoaded", function() {
     // startpage
     document.getElementById('instructions_id').style.display = 'block';
     // default: intro_id | instructions_id | task_id | end_id
+
+    document.getElementById('frame_demo').addEventListener('touchstart', function(evt) {
+        evt.preventDefault();
+        fullscreen_on();
+    });
 });
 
 function begin() {
@@ -75,12 +80,12 @@ function next_trial() {
             //console.log('Failed trial (no touch).');
             next_trial();
             return;
-        // commented out for demo
-        // } else if (document.getElementById('btn_id_left').classList.contains("pressd") || document.getElementById('btn_id_right').classList.contains("pressd")) {
-        //     document.getElementById('lighten').style.display = 'block';
-        //     //console.log('Failed trial (press in progress).');
-        //     next_trial();
-        //     return;
+            // commented out for demo
+            // } else if (document.getElementById('btn_id_left').classList.contains("pressd") || document.getElementById('btn_id_right').classList.contains("pressd")) {
+            //     document.getElementById('lighten').style.display = 'block';
+            //     //console.log('Failed trial (press in progress).');
+            //     next_trial();
+            //     return;
         } else {
             document.getElementById('lighten').style.display = 'none';
         }
@@ -253,16 +258,16 @@ function upload() {
 
 function uploadOriginal() {
     fetch('https://homepage.univie.ac.at/gaspar.lukacs/flick_sst_results/store.php', {
-            method: 'post',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'text/plain'
-            },
-            body: JSON.stringify({
-                fname_post: f_name,
-                results_post: full_data
-            })
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'text/plain'
+        },
+        body: JSON.stringify({
+            fname_post: f_name,
+            results_post: full_data
         })
+    })
         .then(response => response.text())
         .then(echoed => {
             console.log(echoed);
