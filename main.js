@@ -2,14 +2,14 @@
 /*jshint esversion: 6 */
 
 // define global variables
-let date_time, jscd_text, listenkey, text_to_show, disp_start, disp_start_noRAF, disp_stop,
+let date_time, jscd_text, text_to_show, disp_start, disp_start_noRAF, disp_stop,
     input_time, allstims, f_name, startButton, stimulusElem;
 let trialnum = 0,
     startclicked = false,
     userid = "noid",
     phase = "practice",
-    listen = false,
     full_touch_data = [];
+const time_limit = 800;
 
 document.addEventListener("DOMContentLoaded", function() {
 
@@ -168,7 +168,6 @@ const runtrial = function() {
     button.ontouchstart = null;
     button.ontouchmove = null;
     button.ontouchend = null;
-    listen = false;
     trialnum++;
     disp_start = "NA";
     disp_stop = "NA";
@@ -188,34 +187,48 @@ const runtrial = function() {
 
             }, current_stim.ssd - 8);
         }
-        if (phase === "practice") {
-            listen = true;
-        } else {
+        if (phase !== "practice") {
             setTimeout(function() {
                 store_trial();
-            }, 800);
+            }, time_limit);
         }
     });
+    startButton.ontouchmove = (event) => get_coords(event, 1);
+    startButton.ontouchstart = (event) => get_coords(event, 0);
+    startButton.ontouchend = (event) => get_coords(event, 2);
+};
 
-    startButton.ontouchmove = function(event) {
+let frameRect, leftLineRect, rightLineRect;
+addEventListener('onDOMContentLoaded', function() {
+    leftLineRect = document.getElementById('left_line').getBoundingClientRect();
+    rightLineRect = document.getElementById('right_line').getBoundingClientRect();
+    frameRect = document.getElementById("frame_id").getBoundingClientRect();
+});
 
-        evt.preventDefault();
-        full_touch_data.push([evt.timeStamp, evt.changedTouches[0].screenX, evt.changedTouches[0].screenY, type]);
+const get_coords = function(event, type) {
+    event.preventDefault();
+    const currentTouch = event.touches[0];
+    // Calculate coordinates relative to the "frame_id" element
+    const relativeX = currentTouch.clientX - frameRect.left;
+    // Subtract from the height to get Y-coordinate relative to bottom-left corner
+    const relativeY = frameRect.height - (currentTouch.clientY - frameRect.top);
 
-        const currentTouch = event.touches[0];
+    // store relative coordinates
+    if ((performance.now() - disp_start) < time_limit) {
+        full_touch_data.push([event.timeStamp, relativeX, relativeY, type]);
+    }
 
-        const leftLineRect = document.getElementById('left_line').getBoundingClientRect();
-        const rightLineRect = document.getElementById('right_line').getBoundingClientRect();
-
-        // Detect if touch crosses the lines
-        if (currentTouch.clientX <= leftLineRect.right && current_stim.item === '←') {
-            console.log('Touch crossed the left line.');
-            // Add your logic here
-        } else if (currentTouch.clientX >= rightLineRect.left && current_stim.item === '→') {
-            console.log('Touch crossed the right line.');
-            // Add your logic here
+    // Detect if touch crosses the lines
+    if ((currentTouch.clientX <= leftLineRect.right && current_stim.item === '←') || (currentTouch.clientX >= rightLineRect.left && current_stim.item === '→')) {
+        console.log('Touch crossed the right line.');
+        stimulusElem.textContent = '';
+        startButton.ontouchmove = null;
+        startButton.ontouchstart = null;
+        startButton.ontouchend = null;
+        if (phase === "practice") {
+            store_trial();
         }
-    };
+    }
 };
 
 
