@@ -2,13 +2,14 @@
 /*jshint esversion: 6 */
 
 // define global variables
-let date_time, jscd_text, listenkey, text_to_show, disp_start, disp_stop,
+let date_time, jscd_text, listenkey, text_to_show, disp_start, disp_start_noRAF, disp_stop,
     input_time, allstims, f_name, startButton, stimulusElem;
 let trialnum = 0,
     startclicked = false,
     userid = "noid",
     phase = "practice",
-    listen = false;
+    listen = false,
+    full_touch_data = [];
 
 document.addEventListener("DOMContentLoaded", function() {
 
@@ -26,32 +27,29 @@ document.addEventListener("DOMContentLoaded", function() {
     cols.push(Math.round(performance.now() * 100) / 100);
     jscd_text = 'client\t' + heads.join('/') + '\t' + cols.join('/');
 
+
+    // TODO
+    // if (!('ontouchmove' in window.document)) {
+    //     cancel();
+    //     return;
+    // }
+
     // startpage
     document.getElementById('instructions_id').style.display = 'block';
     // default: intro_id | instructions_id | task_id | end_id
 
 });
 
-const warn_touch = function() {
-    startButton.innerHTML = '❗';
-    stimulusElem.innerHTML = 'Please touch the button to start the next trial.';
-    startButton.classList.add('button_highlight');
-    trial_start();
-};
 
-const highlight_remove = function() {
-    startButton.innerHTML = '';
-    stimulusElem.innerHTML = '';
-    startButton.classList.remove('button_highlight');
+const cancel = function() {
+    if (!userid.startsWith("GL")) {
+        document.getElementById('pretest_id').style.display = 'none';
+        document.getElementById('cancel_id').style.display = 'block';
+        f_name = 'flick_sst_x_pilot.txt';
+        full_data = jscd_text + '\t' + date_time + '\n';
+        upload();
+    }
 };
-
-// Helper function to check if a point is inside a circle
-function isPointInCircle(point, rect) {
-    const dx = point.clientX - (rect.left + rect.width / 2);
-    const dy = point.clientY - (rect.top + rect.height / 2);
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    return distance <= rect.width / 2;
-}
 
 
 function begin() {
@@ -88,8 +86,28 @@ function begin() {
     document.getElementById('instructions2_id').style.display = 'none';
     document.getElementById('task_id').style.display = 'block';
 
-
     trial_start();
+}
+
+const warn_touch = function() {
+    startButton.innerHTML = '❗';
+    stimulusElem.innerHTML = 'Please touch the button to start the next trial.';
+    startButton.classList.add('button_highlight');
+    trial_start();
+};
+
+const highlight_remove = function() {
+    startButton.innerHTML = '';
+    stimulusElem.innerHTML = '';
+    startButton.classList.remove('button_highlight');
+};
+
+// Helper function to check if a point is inside a circle
+function isPointInCircle(point, rect) {
+    const dx = point.clientX - (rect.left + rect.width / 2);
+    const dy = point.clientY - (rect.top + rect.height / 2);
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    return distance <= rect.width / 2;
 }
 
 let warning_TO;
@@ -150,24 +168,21 @@ const runtrial = function() {
     button.ontouchstart = null;
     button.ontouchmove = null;
     button.ontouchend = null;
-
-    // TODO ->
-
     listen = false;
-    stimulusElem.textContent = '+';
     trialnum++;
     disp_start = "NA";
     disp_stop = "NA";
     current_stim = allstims.shift(); // get next stimulus dictionary
     console.log(current_stim); // print info
 
+    disp_start_noRAF = Math.round(performance.now() * 100) / 100;
     requestAnimationFrame(function(stamp) {
         stimulusElem.textContent = current_stim.item;
-        disp_start = stamp; // the crucial (start) JS-timing
+        disp_start = Math.round(stamp * 100) / 100; // the crucial (start) JS-timing
         if (current_stim.ssd > 0) {
             setTimeout(function() {
                 requestAnimationFrame(function(stamp2) {
-                    document.getElementById('stop_id').textContent = 'STOP!';
+                    stimulusElem.textContent = 'x ' + stimulusElem.textContent + ' x';
                     disp_stop = stamp2;
                 });
 
@@ -181,7 +196,28 @@ const runtrial = function() {
             }, 800);
         }
     });
+
+    startButton.ontouchmove = function(event) {
+
+        evt.preventDefault();
+        full_touch_data.push([evt.timeStamp, evt.changedTouches[0].screenX, evt.changedTouches[0].screenY, type]);
+
+        const currentTouch = event.touches[0];
+
+        const leftLineRect = document.getElementById('left_line').getBoundingClientRect();
+        const rightLineRect = document.getElementById('right_line').getBoundingClientRect();
+
+        // Detect if touch crosses the lines
+        if (currentTouch.clientX <= leftLineRect.right && current_stim.item === '←') {
+            console.log('Touch crossed the left line.');
+            // Add your logic here
+        } else if (currentTouch.clientX >= rightLineRect.left && current_stim.item === '→') {
+            console.log('Touch crossed the right line.');
+            // Add your logic here
+        }
+    };
 };
+
 
 const randomdigit = function(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -197,13 +233,13 @@ let full_data = [
     "type",
     "ssd",
     "disp_start",
+    "disp_start_noRAF",
     "disp_stop",
     "time_now"
 ].join('\t') + '\n';
 
 function store_trial() {
-    stimulusElem.textContent = '+';
-    document.getElementById('stop_id').textContent = '';
+    stimulusElem.textContent = '';
     full_data += [
         date_time,
         phase,
@@ -211,6 +247,7 @@ function store_trial() {
         current_stim.item,
         current_stim.ssd,
         disp_start,
+        disp_start_noRAF,
         disp_stop,
         Math.round(performance.now() * 100) / 100
     ].join('\t') + '\n';
@@ -232,11 +269,7 @@ function store_trial() {
 
 // change rectangle color to blue to indicate experiment ending
 function ending() {
-    full_touch_data.left = full_touch_data.left.map(elem => {
-        elem[0] = Math.round(elem[0] * 100) / 100;
-        return (elem);
-    });
-    full_touch_data.right = full_touch_data.right.map(elem => {
+    full_touch_data = full_touch_data.map(elem => {
         elem[0] = Math.round(elem[0] * 100) / 100;
         return (elem);
     });
