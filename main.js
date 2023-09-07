@@ -231,7 +231,6 @@ const get_coords = function(event, type) {
     }
 };
 
-
 const randomdigit = function(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
@@ -268,8 +267,6 @@ function store_trial() {
         trial_start();
     } else if (phase === "practice") {
         setTimeout(function() {
-            document.getElementById('contain1').style.display = 'none';
-            document.getElementById('contain2').style.display = 'none';
             phase = "main";
             document.getElementById('task_id').style.display = 'none';
             document.getElementById('instructions2_id').style.display = 'block';
@@ -277,7 +274,6 @@ function store_trial() {
     } else {
         setTimeout(ending, 500);
     }
-
 }
 
 // change rectangle color to blue to indicate experiment ending
