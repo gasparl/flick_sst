@@ -121,18 +121,18 @@ function trial_start() {
                 const currentTouch = event.touches[0];
                 const buttonRect = startButton.getBoundingClientRect();
 
-                // If touch moved outside the circle
-                if (!isPointInCircle(currentTouch, buttonRect)) {
-                    console.log('Touch moved outside the button.');
-
-                    // Check if moved upwards and left from top boundary
-                    if (stimulusElem.textContent === '↑' && currentTouch.clientY < buttonRect.top) {
-                        console.log('Touch moved upwards and left the button.');
-                        runtrial();
-                    } else {
-                        console.log('Touch moved in the wrong direction.');
-                        warn_touch();
-                    }
+                // Check if moved upwards and left from top boundary
+                if (stimulusElem.textContent === '↑' && currentTouch.clientY < buttonRect.top &&
+                    currentTouch.clientX >= buttonRect.left && currentTouch.clientX <= buttonRect.right) {
+                    console.log('Touch moved upwards and left the button.');
+                    runtrial();
+                } else if (
+                    currentTouch.clientY > buttonRect.bottom ||
+                    currentTouch.clientX < buttonRect.left ||
+                    currentTouch.clientX > buttonRect.right
+                ) {
+                    console.log('Touch moved in the wrong direction.');
+                    warn_touch();
                 }
             };
         }
