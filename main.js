@@ -3,7 +3,7 @@
 
 // define global variables
 let date_time, jscd_text, listenkey, text_to_show, disp_start, disp_stop,
-    input_time, allstims, f_name;
+    input_time, allstims, f_name, startButton, stimulusElem;
 let trialnum = 0,
     startclicked = false,
     userid = "noid",
@@ -11,6 +11,9 @@ let trialnum = 0,
     listen = false;
 
 document.addEventListener("DOMContentLoaded", function() {
+
+    startButton = document.getElementById('button_id');
+    stimulusElem = document.getElementById('stimulus_id');
     userid_check();
     // define a small information box for continually updated info about the ongoing trials
     let heads = ["os", "os_v", "browser", "browser_v", "screen", "GlRenderer", "Resolution", "Model"];
@@ -29,13 +32,31 @@ document.addEventListener("DOMContentLoaded", function() {
 
 });
 
+const warn_touch = function() {
+    startButton.innerHTML = '❗';
+    stimulusElem.innerHTML = 'Please touch the button to start the next trial.';
+    startButton.classList.add('button_highlight');
+    trial_start();
+};
+
+const highlight_remove = function() {
+    startButton.innerHTML = '';
+    stimulusElem.innerHTML = '';
+    startButton.classList.remove('button_highlight');
+};
+
+// Helper function to check if a point is inside a circle
+function isPointInCircle(point, rect) {
+    const dx = point.clientX - (rect.left + rect.width / 2);
+    const dy = point.clientY - (rect.top + rect.height / 2);
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    return distance <= rect.width / 2;
+}
+
+
 function begin() {
-    document.getElementById('lighten').style.display = 'none';
     DT.loopOn();
-    ['btn_id_left', 'btn_id_right'].forEach((id) => {
-        document.getElementById(id).innerHTML = '<br>Touch here!';
-        document.getElementById(id).style.backgroundColor = "red";
-    });
+
     let reps = 5;
     if (phase == "main") {
         reps = 10;
@@ -66,34 +87,74 @@ function begin() {
     document.getElementById('instructions_id').style.display = 'none';
     document.getElementById('instructions2_id').style.display = 'none';
     document.getElementById('task_id').style.display = 'block';
-    next_trial();
+
+
+    trial_start();
 }
 
-function next_trial() {
-    setTimeout(function() {
-        if (document.getElementById('btn_id_left').style.backgroundColor == "red" ||
-            document.getElementById('btn_id_right').style.backgroundColor == "red") {
-            //console.log('Failed trial (no touch).');
-            next_trial();
-            return;
-            // commented out for demo
-            // } else if (document.getElementById('btn_id_left').classList.contains("pressd") || document.getElementById('btn_id_right').classList.contains("pressd")) {
-            //     document.getElementById('lighten').style.display = 'block';
-            //     //console.log('Failed trial (press in progress).');
-            //     next_trial();
-            //     return;
-        } else {
-            document.getElementById('lighten').style.display = 'none';
+let warning_TO;
+
+function trial_start() {
+    warning_TO = setTimeout(() => {
+        if (startButton.classList.contains("button_highlight")) {
+            warn_touch();
+        }
+    }, 3000);
+    startButton.classList.add('button_highlight');
+    button.ontouchmove = null;
+    startButton.ontouchstart = function(event) {
+        // Remember starting point
+        const startTouch = event.touches[0];
+        const buttonRect = startButton.getBoundingClientRect();
+        let touchStartedInside = isPointInCircle(startTouch, buttonRect);
+
+        // If touch started inside the button
+        if (touchStartedInside) {
+            console.log('Touch started inside the button.');
+            highlight_remove();
+            clearTimeout(warning_TO);
+
+            setTimeout(() => stimulusElem.textContent = '↑', 300);
+
+            // Detect if the touch moves out of the circle or ends
+            startButton.ontouchmove = function(event) {
+                const currentTouch = event.touches[0];
+                const buttonRect = startButton.getBoundingClientRect();
+
+                // If touch moved outside the circle
+                if (!isPointInCircle(currentTouch, buttonRect)) {
+                    console.log('Touch moved outside the button.');
+
+                    // Check if moved upwards and left from top boundary
+                    if (stimulusElem.textContent === '↑' && currentTouch.clientY < buttonRect.top) {
+                        console.log('Touch moved upwards and left the button.');
+                        runtrial();
+                    } else {
+                        console.log('Touch moved in the wrong direction.');
+                        warn_touch();
+                    }
+                }
+            };
         }
 
-        setTimeout(runtrial, randomdigit(400, 900));
+        // Detect if the touch ends
+        startButton.ontouchend = function(event) {
+            console.log('Touch ended.');
+            warn_touch();
+        };
 
-    }, 100);
+    };
 }
 
 const runtrial = function() {
+    button.ontouchstart = null;
+    button.ontouchmove = null;
+    button.ontouchend = null;
+
+    // TODO ->
+
     listen = false;
-    document.getElementById('stimulus_id').textContent = '+';
+    stimulusElem.textContent = '+';
     trialnum++;
     disp_start = "NA";
     disp_stop = "NA";
@@ -101,7 +162,7 @@ const runtrial = function() {
     console.log(current_stim); // print info
 
     requestAnimationFrame(function(stamp) {
-        document.getElementById('stimulus_id').textContent = current_stim.item;
+        stimulusElem.textContent = current_stim.item;
         disp_start = stamp; // the crucial (start) JS-timing
         if (current_stim.ssd > 0) {
             setTimeout(function() {
@@ -141,7 +202,7 @@ let full_data = [
 ].join('\t') + '\n';
 
 function store_trial() {
-    document.getElementById('stimulus_id').textContent = '+';
+    stimulusElem.textContent = '+';
     document.getElementById('stop_id').textContent = '';
     full_data += [
         date_time,
@@ -154,7 +215,7 @@ function store_trial() {
         Math.round(performance.now() * 100) / 100
     ].join('\t') + '\n';
     if (allstims.length > 0) {
-        next_trial();
+        trial_start();
     } else if (phase === "practice") {
         setTimeout(function() {
             document.getElementById('contain1').style.display = 'none';

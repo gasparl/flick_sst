@@ -60,7 +60,7 @@
             <br>You can stop participating in the study at any time without giving a reason (by closing or refreshing
             this website). In this case, all recorded data will be fully deleted.
             <br>This application was tested thoroughly, but we cannot guarantee that it will correctly work with your
-            specific iPhone and iOS technology. Please contact lkcsgaspar@gmail.com if you run into any trouble.
+            specific device and operating system. Please contact lkcsgaspar@gmail.com if you run into any trouble.
         </p>
 
         <p><b>Anonymity and Privacy:</b>
@@ -103,7 +103,7 @@
 
         <p>
             At the beginning of each trial, you should place your preferred index finger on the circle at the bottom. (If you would like, you may use your middle finger instead of index finger.)
-            As soon as your finger is detected, you will get a "↑" message, as below. This means you should start moving your finger up, toward the top of the screen.
+            Almost immediately after your finger touch is detected, you will get a "↑" message, as below. This means you should start moving your finger up, toward the top of the screen.
         </p>
 
         <div class="frame_class frame_demo">
@@ -131,7 +131,7 @@
 
     <div id="instructions2_id" class="longtext" style="display:none;">
         <p>
-            For the rest of the task, on some of trials, very shortly after the left or right arrow appears, there will appear an "X" sign on each side of the arrow. When this happens, please try your best to stop your response and <i>not
+            For the rest of the task, on some of trials, very shortly after the left or right arrow appears, there will appear an "X" sign on each side of the arrow, representing a "STOP" signal. When this happens, please try your best to stop your response and <i>not
                 press</i> any button on that
             trial.
         </p>
@@ -153,15 +153,15 @@
         </div>
 
         <p>
-            It is normal and expected if you will not always be able to successfully stop when a "STOP!" message
-            appears. However, if you continue to try very hard to stop when a "STOP!" message appears, you
+            It is normal and expected if you will not always be able to successfully stop when a stop signal
+            appears. However, if you continue to try very hard to stop when a stop signal appears, you
             should be able to stop sometimes.
         </p>
 
         <p>
             <b>
                 Please balance the requirement to respond quickly and accurately to the arrows while trying very hard to
-                stop to the "STOP!" message.
+                stop to the stop signal.
             </b>
         </p>
 
@@ -174,27 +174,13 @@
 
     <div id="task_id" style="display:none;">
 
-
-        <div id="stop_id">
+        <div class="frame_class frame_demo">
+            <div class="stimulus_class" id="stimulus_id"></div>
+            <div class="left_line"></div>
+            <div class="right_line"></div>
+            <button class="button_circle"  id ='button_id'></button>
         </div>
 
-
-        <div id="stimulus_id">+</div>
-
-        <div class="btn_class btn_left" id="btn_id_left">
-        </div>
-        <div class="btn_class btn_right" id="btn_id_right">
-        </div>
-
-        <div class="container btn_left" id="contain1">
-            <div class="bar" id="bar_id_left">
-            </div>
-        </div>
-
-        <div class="container btn_right" id="contain2">
-            <div class="bar" id="bar_id_right">
-            </div>
-        </div>
 
         <p id="lighten" style="display:none;width:40%;margin:auto">Please end the response (decrease the pressure) to
             continue.</p>
