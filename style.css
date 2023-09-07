@@ -13,40 +13,75 @@ button {
     font-size: 30px;
 }
 
+.stimulus_class {
+    font-size: 65px;
+    font-family: Arial;
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 22px;
+}
+
+
 .frame_class {
-    border: 1px solid #7d7d7d;
+    border-top: 3px solid #000000;
+    border-bottom: 3px solid #000000;
+    border-right: none;
+    border-left: none;
     top: 50%;
     left: 50%;
     height: 300px;
     width: 500px;
     position: fixed;
     transform: translate(-50%, -50%);
-    background-color: #861919;
-
 }
 
-#frame_demo {
+.frame_demo {
     position: relative;
     transform: none;
     left: auto;
     margin: 0 auto;
 }
 
+.button_circle {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 22px;
+    box-shadow: inset 0 2px 0 0 #B0B0B0;
+    border: 1px solid #dcdcdc;
+    text-align: center;
+    background-color: #aaaaaa;
+}
+
+.left_line,
+.right_line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: green;
+}
+
+.left_line {
+    left: 30px;
+}
+
+.right_line {
+    right: 30px;
+}
+
+
 .longtext {
     width: 80%;
     margin: auto;
     text-align: justify;
-}
-
-#stimulus_id {
-    font-size: 65px;
-    font-family: Arial;
-    text-align: center;
-    position: fixed;
-    top: 45%;
-    left: 50%;
-    margin: 0 -50% 0 0;
-    transform: translate(-50%, -50%);
 }
 
 #stop_id {
@@ -58,33 +93,10 @@ button {
     transform: translate(-50%, -50%);
 }
 
-.btn_class {
-    font-size: 22px;
-    box-shadow: inset 0 2px 0 0 #B0B0B0;
-    border: 1px solid #dcdcdc;
-    border-radius: 5%;
-    top: 75%;
-    left: 50%;
-    height: 120px;
-    width: 120px;
-    text-align: center;
-    position: fixed;
-    transform: translate(-50%, -50%);
-    background-color: #aaaaaa;
-}
 
 .pressd {
     background-color: #666666;
 }
-
-.btn_left {
-    left: 19%;
-}
-
-.btn_right {
-    left: 81%;
-}
-
 
 .container {
     position: fixed;

@@ -27,10 +27,6 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById('instructions_id').style.display = 'block';
     // default: intro_id | instructions_id | task_id | end_id
 
-    document.getElementById('frame_demo').addEventListener('touchstart', function(evt) {
-        evt.preventDefault();
-        fullscreen_on();
-    });
 });
 
 function begin() {
