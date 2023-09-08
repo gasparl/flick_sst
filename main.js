@@ -3,7 +3,7 @@
 
 // define global variables
 let date_time, jscd_text, text_to_show, disp_start, disp_start_noRAF, disp_stop, faulty,
-    input_time, allstims, f_name, startButton, stimulusElem, trial_touch_data;
+    input_time, allstims, f_name, startButton, stimulusElem, trial_touch_data, cross_time;
 let start_div = "intro_id", // default: intro_id | instructions_id | task_id | end_id
     trialnum = 0,
     startclicked = false,
@@ -114,12 +114,6 @@ function isPointInCircle(point, rect) {
     return distance <= rect.width / 2;
 }
 
-const getFramePos = function() {
-    leftLineRect = document.getElementById('left_id').getBoundingClientRect();
-    rightLineRect = document.getElementById('right_id').getBoundingClientRect();
-    frameRect = document.getElementById("frame_id").getBoundingClientRect();
-};
-
 let warning_TO, go_TO;
 
 function trial_start() {
@@ -159,6 +153,7 @@ function trial_start() {
                 if (stimulusElem.textContent === '↑' && currentTouch.clientY < buttonRect.top &&
                     currentTouch.clientX >= buttonRect.left && currentTouch.clientX <= buttonRect.right) {
                     console.log('Touch moved upwards and left the button.');
+                    cross_time = Math.round(event.timeStamp * 100) / 100;
                     runtrial();
                 } else if (
                     currentTouch.clientY > buttonRect.bottom ||
@@ -218,7 +213,18 @@ const runtrial = function() {
     startButton.ontouchend = (event) => get_coords(event, 2);
 };
 
-let frameRect, leftLineRect, rightLineRect;
+let frameRectMiddle, leftLineRectRight, rightLineRectLeft, startButtonRectTop;
+
+
+const getFramePos = function() {
+    leftLineRectRight = document.getElementById('left_id').getBoundingClientRect().right;
+    rightLineRectLeft = document.getElementById('right_id').getBoundingClientRect().left;
+    startButtonRectTop = document.getElementById('button_id').getBoundingClientRect().top;
+
+    const frameRect = document.getElementById("frame_id").getBoundingClientRect();
+    frameRectMiddle = frameRect.left + (frameRect.width / 2);
+};
+
 
 const get_coords = function(event, type) {
     event.preventDefault();
@@ -232,15 +238,17 @@ const get_coords = function(event, type) {
 
     // store relative coordinates
     if ((performance.now() - disp_start) < time_limit) {
-        // Calculate coordinates relative to the "frame_id" element
-        const relativeX = currentTouch.clientX - frameRect.left;
-        // Subtract from the height to get Y-coordinate relative to bottom-left corner
-        const relativeY = frameRect.height - (currentTouch.clientY - frameRect.top);
+        // Calculate X coordinate relative to the vertical middle of the "frame_id" element
+        const relativeX = currentTouch.clientX - frameRectMiddle;
+
+        // Calculate Y coordinate relative to the horizontal top of the "button_id" element
+        const relativeY = currentTouch.clientY - startButtonRectTop;
+
         trial_touch_data.push([event.timeStamp, relativeX, relativeY, type]);
     }
 
     // Detect if touch crosses the lines
-    if ((currentTouch.clientX <= leftLineRect.right && current_stim.item === '←') || (currentTouch.clientX >= rightLineRect.left && current_stim.item === '→')) {
+    if ((currentTouch.clientX <= leftLineRectRight && current_stim.item === '←') || (currentTouch.clientX >= rightLineRectLeft && current_stim.item === '→')) {
         fullscreen_on();
         stimulusElem.textContent = '';
         startButton.ontouchmove = null;
@@ -265,6 +273,7 @@ let full_data = [
     "trial_number",
     "type",
     "ssd",
+    "cross_time",
     "disp_start",
     "disp_start_noRAF",
     "disp_stop",
@@ -282,6 +291,7 @@ function store_trial() {
         trialnum,
         current_stim.item,
         current_stim.ssd,
+        cross_time,
         disp_start,
         disp_start_noRAF,
         disp_stop,
