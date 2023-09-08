@@ -86,6 +86,9 @@ const to_sec = function(num) {
 
 // enter fullscreen mode [n19]
 const fullscreen_on = function(doit = false) {
+    if (userid === "demo" && !doit) {
+        return;
+    }
     const element = document.documentElement;
     if (element.requestFullscreen) { //W3C standard
         element.requestFullscreen();

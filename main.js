@@ -4,11 +4,13 @@
 // define global variables
 let date_time, jscd_text, text_to_show, disp_start, disp_start_noRAF, disp_stop, faulty,
     input_time, allstims, f_name, startButton, stimulusElem, trial_touch_data;
-let trialnum = 0,
+let start_div = "intro_id", // default: intro_id | instructions_id | task_id | end_id
+    trialnum = 0,
     startclicked = false,
     userid = "noid",
     phase = "practice",
-    full_touch_data = [];
+    full_touch_data = [],
+    demo = false;
 const time_limit = 800;
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -35,9 +37,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // }
 
     // startpage
-    document.getElementById('instructions_id').style.display = 'block';
-    // default: intro_id | instructions_id | task_id | end_id
-
+    document.getElementById(start_div).style.display = 'block';
 });
 
 
@@ -54,6 +54,7 @@ const cancel = function() {
 
 
 function begin() {
+    fullscreen_on();
     keep_state();
     DT.loopOn();
 
@@ -88,6 +89,7 @@ function begin() {
     document.getElementById('instructions2_id').style.display = 'none';
     document.getElementById('task_id').style.display = 'block';
 
+    faulty = { ended: 0, wrong_move: 0 };
     trial_start();
 }
 
@@ -130,10 +132,12 @@ function trial_start() {
     }, 3000);
     startButton.classList.add('button_highlight');
     startButton.ontouchmove = null;
-    startButton.ontouchstart = function(event) {
+    startButton.ontouchend = null;
+    startButton.ontouchstart = function(ev) {
         // Remember starting point
-        event.preventDefault();
-        const startTouch = event.touches[0];
+        ev.preventDefault();
+        console.log('Touch started.');
+        const startTouch = ev.touches[0];
         const buttonRect = startButton.getBoundingClientRect();
         let touchStartedInside = isPointInCircle(startTouch, buttonRect);
 
@@ -168,7 +172,6 @@ function trial_start() {
                 }
             };
 
-
             // Detect if the touch ends
             startButton.ontouchend = function(event) {
                 event.preventDefault();
@@ -188,7 +191,6 @@ const runtrial = function() {
     trialnum++;
     disp_start = "NA";
     disp_stop = "NA";
-    faulty = { ended: 0, wrong_move: 0 };
     current_stim = allstims.shift(); // get next stimulus dictionary
     console.log(current_stim); // print info
 
@@ -239,6 +241,7 @@ const get_coords = function(event, type) {
 
     // Detect if touch crosses the lines
     if ((currentTouch.clientX <= leftLineRect.right && current_stim.item === '←') || (currentTouch.clientX >= rightLineRect.left && current_stim.item === '→')) {
+        fullscreen_on();
         stimulusElem.textContent = '';
         startButton.ontouchmove = null;
         startButton.ontouchstart = null;
@@ -286,6 +289,7 @@ function store_trial() {
         faulty.wrong_move,
         Math.round(performance.now() * 100) / 100
     ].join('\t') + '\n';
+    faulty = { ended: 0, wrong_move: 0 };
     if (allstims.length > 0) {
         trial_start();
     } else if (phase === "practice") {
@@ -309,6 +313,7 @@ function ending() {
     document.getElementById('end_id').style.display = 'block';
     f_name = 'flick_sst_pilot1_' + jscd.os + '_' +
         jscd.browser + '_' + date_time + '_' + userid + '.txt';
+    document.getElementById("subj_id").innerText = date_time + '_' + userid;
     full_data += jscd_text + "\n" + JSON.stringify(full_touch_data);
     upload();
     document.ontouchstart = () => {
@@ -344,27 +349,34 @@ function userid_check() {
     } else {
         userid = "noid";
     }
+
+    if (params.get('demo') !== null) {
+        misc.demo = true;
+        // (this variable is then used everywhere else to decide whether the app 
+        // should act as in case of a demo version)
+    }
+
+
+    const page = params.get('p');
+    if (document.getElementById(page) && document.getElementById(page).classList.contains('page')) {
+        start_div = page;
+    }
 }
 
 // store data on server
 const upload = function() {
     document.getElementById("retry_button").disabled = true;
-    if (misc.demo) {
-        window.onbeforeunload = null;
-        document.getElementById('pass_id').innerHTML = '<i>(In case of participation via Prolific, the link would be provided here.)</i>';
-        return;
-    }
     document.getElementById('pass_id').innerHTML += spinner_content;
     document.documentElement.style.cursor = 'wait';
-    fetch('./php/store_main.php', {
+    fetch('./store.php', {
         method: 'post',
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'text/plain'
         },
         body: JSON.stringify({
-            fname_post: file_name, // name of the file to be saved at the server
-            results_post: prep_file() // data (text content) of the file
+            fname_post: f_name, // name of the file to be saved at the server
+            results_post: full_data // data (text content) of the file
         })
     })
         .then(response => response.text())

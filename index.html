@@ -11,14 +11,13 @@
     <script src="./jscd.js"></script>
     <script src="./utils.js"></script>
     <script src="./main.js"></script>
-    <script src="./touchtrack.js"></script>
     <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
 
 
-    <div id="intro_id" class="longtext" style="display:none;">
+    <div id="intro_id" class="longtext selectable" style="display:none;">
         <h1>Information</h1>
 
         <p>
@@ -62,7 +61,7 @@
         </p>
         <br>
 
-        <button type="button"
+        <button type="button" class="main_button"
             onclick="document.getElementById('intro_id').style.display = 'none';window.scrollTo(0, 0);document.getElementById('instructions_id').style.display = 'block';">
             Consent & Continue
         </button>
@@ -116,14 +115,14 @@
         </p>
 
         <br>
-        <button type="button" onclick='begin();'>Start</button>
+        <button type="button" class="main_button" onclick='begin();'>Start</button>
         <br>
         <br>
     </div>
 
     <div id="instructions2_id" class="longtext" style="display:none;">
         <p>
-            For the rest of the task, on some of trials, very shortly after the left or right arrow appears, there will
+            For the rest of the task, on some trials, very shortly after the left or right arrow appears, there will
             appear an "X" sign on each side of the arrow, representing a "STOP" signal.
         </p>
 
@@ -164,7 +163,7 @@
         </p>
 
         <br>
-        <button type="button" onclick='begin();'>Start</button>
+        <button type="button" class="main_button" onclick='begin();'>Start</button>
         <br>
         <br>
     </div>
@@ -218,7 +217,7 @@
     </div>
 
 
-    <div id="cancel_id" class="longtext" style="display:none;">
+    <div id="cancel_id" class="longtext selectable" style="display:none;">
 
         We could not detect the touchscreen on your device. <span id="extra_info"></span> As explained in the
         description, to participate in this study, you must have smartphone with a touchscreen (at least 360 px wide and
