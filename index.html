@@ -17,19 +17,6 @@
 
 <body>
 
-    <div id="cancel_id" class="longtext" style="display:none;">
-
-        We could not detect the touchscreen on your device. <span id="extra_info"></span> As explained in the
-        description, to participate in this study, you must have smartphone with a touchscreen (at least 360 px wide and
-        640 px height).
-        <br><br>
-        If you believe that this is mistake on our part, please email lkcsgaspar@gmail.com.
-        <br><br>
-        Otherwise, <b>please return you submission</b>. (See <a
-            href='https://participant-help.prolific.co/hc/en-gb/articles/360022342094-How-do-I-withdraw-my-participation-in-a-study-'
-            target='_blank'>here</a> for instructions.)
-
-    </div>
 
     <div id="intro_id" class="longtext" style="display:none;">
         <h1>Information</h1>
@@ -137,12 +124,12 @@
     <div id="instructions2_id" class="longtext" style="display:none;">
         <p>
             For the rest of the task, on some of trials, very shortly after the left or right arrow appears, there will
-            appear an "X" sign on each side of the arrow, representing a "STOP" signal. When this happens, please try
-            your best to stop your response and <i>not
-                press</i> any button on that
-            trial.
+            appear an "X" sign on each side of the arrow, representing a "STOP" signal.
         </p>
 
+        <p>
+            Like this:
+        </p>
 
         <div class="frame_class frame_demo">
             <div class="stimulus_class">x ← x</div>
@@ -151,6 +138,9 @@
             <button class="button_circle"></button>
         </div>
 
+        <p>
+            Or like this:
+        </p>
 
         <div class="frame_class frame_demo">
             <div class="stimulus_class">x → x</div>
@@ -160,6 +150,7 @@
         </div>
 
         <p>
+            When this happens, please try your best to stop your response and <i>not press</i> any button on that trial.
             It is normal and expected if you will not always be able to successfully stop when a stop signal
             appears. However, if you continue to try very hard to stop when a stop signal appears, you
             should be able to stop sometimes.
@@ -194,15 +185,51 @@
     </div>
 
     <div id="end_id" class="longtext" style="display:none;">
-        <br>
-        <br>
-        <br>
-        <div id="dl_id">
-            Something went wrong with saving the file on the server. (Maybe internet connection issues.) Please download
-            the data with the button below, and send to lkcsgaspar@gmail.com.
+        <b>This is the end of the experiment, thank you for participating!</b>
+
+        <span id="pass_container">
+            <br><br>
+            Please open the following link to register your completed participation:
             <br>
-            <button style="font-weight:bold;" type="button" onclick="dl_as_file();">download</button>
-        </div>
+            <span id="pass_id">[Please wait, the link is not yet available.]</span>
+        </span>
+        <br>
+        <br>
+        You may also use the following code to verify your participation: <b><span id="subj_id"></span></b>
+        <br>
+        <br>
+        <p id="save_success" style="display:none;">
+            Your data has been safely stored. You may close this web page.
+            <br>
+            <br>
+        </p>
+        <p id="save_fail">
+            Data cannot be saved on the server. Perhaps there is some trouble with the internet connection? <b>Press
+                this <button onclick="upload();" id="retry_button">RETRY<span id="retry_spin"></span></button>
+                button to try saving on the server again. (This message will disappear on successful saving.)
+                Alternatively, press this <button onclick="dl_as_file();">DOWNLOAD</button> button to save your data
+                manually (note: you must allow pop-ups), and then send it to lkcsgaspar@gmail.com.</b>
+            <br>
+            <br>
+        </p>
+        If you have any questions related to this experiment, please contact <a target="_blank"
+            href="https://gasparl.github.io/">Gáspár Lukács</a> at <a
+            href="mailto:lkcsgaspar@gmail.com">lkcsgaspar@gmail.com</a>
+    </div>
+
+
+    <div id="cancel_id" class="longtext" style="display:none;">
+
+        We could not detect the touchscreen on your device. <span id="extra_info"></span> As explained in the
+        description, to participate in this study, you must have smartphone with a touchscreen (at least 360 px wide and
+        640 px height).
+        <br><br>
+        If you believe that this is mistake on our part, please email lkcsgaspar@gmail.com.
+        <br><br>
+        Otherwise, <b>please return you submission</b>. (See <a
+            href='https://participant-help.prolific.co/hc/en-gb/articles/360022342094-How-do-I-withdraw-my-participation-in-a-study-'
+            target='_blank'>here</a> for instructions.)
+
     </div>
 
 </body>

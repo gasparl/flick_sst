@@ -2,8 +2,8 @@
 /*jshint esversion: 6 */
 
 // define global variables
-let date_time, jscd_text, text_to_show, disp_start, disp_start_noRAF, disp_stop,
-    input_time, allstims, f_name, startButton, stimulusElem;
+let date_time, jscd_text, text_to_show, disp_start, disp_start_noRAF, disp_stop, faulty,
+    input_time, allstims, f_name, startButton, stimulusElem, trial_touch_data;
 let trialnum = 0,
     startclicked = false,
     userid = "noid",
@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 const cancel = function() {
+    // TODO
     if (!userid.startsWith("GL")) {
         document.getElementById('pretest_id').style.display = 'none';
         document.getElementById('cancel_id').style.display = 'block';
@@ -53,6 +54,7 @@ const cancel = function() {
 
 
 function begin() {
+    keep_state();
     DT.loopOn();
 
     let reps = 5;
@@ -90,10 +92,10 @@ function begin() {
 }
 
 const warn_touch = function() {
+    clearTimeout(go_TO);
     startButton.innerHTML = '❗';
     stimulusElem.innerHTML = 'Please touch the button to start the next trial.';
     startButton.classList.add('button_highlight');
-    trial_start();
 };
 
 const highlight_remove = function() {
@@ -110,18 +112,27 @@ function isPointInCircle(point, rect) {
     return distance <= rect.width / 2;
 }
 
-let warning_TO;
+const getFramePos = function() {
+    leftLineRect = document.getElementById('left_id').getBoundingClientRect();
+    rightLineRect = document.getElementById('right_id').getBoundingClientRect();
+    frameRect = document.getElementById("frame_id").getBoundingClientRect();
+};
+
+let warning_TO, go_TO;
 
 function trial_start() {
+    trial_touch_data = [];
+    getFramePos();
     warning_TO = setTimeout(() => {
         if (startButton.classList.contains("button_highlight")) {
             warn_touch();
         }
     }, 3000);
     startButton.classList.add('button_highlight');
-    button.ontouchmove = null;
+    startButton.ontouchmove = null;
     startButton.ontouchstart = function(event) {
         // Remember starting point
+        event.preventDefault();
         const startTouch = event.touches[0];
         const buttonRect = startButton.getBoundingClientRect();
         let touchStartedInside = isPointInCircle(startTouch, buttonRect);
@@ -132,10 +143,11 @@ function trial_start() {
             highlight_remove();
             clearTimeout(warning_TO);
 
-            setTimeout(() => stimulusElem.textContent = '↑', 300);
+            go_TO = setTimeout(() => stimulusElem.textContent = '↑', 300);
 
             // Detect if the touch moves out of the circle or ends
             startButton.ontouchmove = function(event) {
+                event.preventDefault();
                 const currentTouch = event.touches[0];
                 const buttonRect = startButton.getBoundingClientRect();
 
@@ -151,26 +163,32 @@ function trial_start() {
                 ) {
                     console.log('Touch moved in the wrong direction.');
                     warn_touch();
+                    faulty.wrong_move++;
+                    trial_start();
                 }
             };
+
+
+            // Detect if the touch ends
+            startButton.ontouchend = function(event) {
+                event.preventDefault();
+                console.log('Touch ended.');
+                warn_touch();
+                faulty.ended++;
+                trial_start();
+            };
         }
-
-        // Detect if the touch ends
-        startButton.ontouchend = function(event) {
-            console.log('Touch ended.');
-            warn_touch();
-        };
-
     };
 }
 
 const runtrial = function() {
-    button.ontouchstart = null;
-    button.ontouchmove = null;
-    button.ontouchend = null;
+    startButton.ontouchstart = null;
+    startButton.ontouchmove = null;
+    startButton.ontouchend = null;
     trialnum++;
     disp_start = "NA";
     disp_stop = "NA";
+    faulty = { ended: 0, wrong_move: 0 };
     current_stim = allstims.shift(); // get next stimulus dictionary
     console.log(current_stim); // print info
 
@@ -199,28 +217,28 @@ const runtrial = function() {
 };
 
 let frameRect, leftLineRect, rightLineRect;
-addEventListener('onDOMContentLoaded', function() {
-    leftLineRect = document.getElementById('left_line').getBoundingClientRect();
-    rightLineRect = document.getElementById('right_line').getBoundingClientRect();
-    frameRect = document.getElementById("frame_id").getBoundingClientRect();
-});
 
 const get_coords = function(event, type) {
     event.preventDefault();
-    const currentTouch = event.touches[0];
-    // Calculate coordinates relative to the "frame_id" element
-    const relativeX = currentTouch.clientX - frameRect.left;
-    // Subtract from the height to get Y-coordinate relative to bottom-left corner
-    const relativeY = frameRect.height - (currentTouch.clientY - frameRect.top);
+
+    if (event.changedTouches.length === 0) {
+        console.warn('No changed touches available');
+        return;
+    }
+
+    const currentTouch = event.changedTouches[0];
 
     // store relative coordinates
     if ((performance.now() - disp_start) < time_limit) {
-        full_touch_data.push([event.timeStamp, relativeX, relativeY, type]);
+        // Calculate coordinates relative to the "frame_id" element
+        const relativeX = currentTouch.clientX - frameRect.left;
+        // Subtract from the height to get Y-coordinate relative to bottom-left corner
+        const relativeY = frameRect.height - (currentTouch.clientY - frameRect.top);
+        trial_touch_data.push([event.timeStamp, relativeX, relativeY, type]);
     }
 
     // Detect if touch crosses the lines
     if ((currentTouch.clientX <= leftLineRect.right && current_stim.item === '←') || (currentTouch.clientX >= rightLineRect.left && current_stim.item === '→')) {
-        console.log('Touch crossed the right line.');
         stimulusElem.textContent = '';
         startButton.ontouchmove = null;
         startButton.ontouchstart = null;
@@ -247,10 +265,13 @@ let full_data = [
     "disp_start",
     "disp_start_noRAF",
     "disp_stop",
+    "ended",
+    "wrong_move",
     "time_now"
 ].join('\t') + '\n';
 
 function store_trial() {
+    full_touch_data.push(...trial_touch_data);
     stimulusElem.textContent = '';
     full_data += [
         date_time,
@@ -261,6 +282,8 @@ function store_trial() {
         disp_start,
         disp_start_noRAF,
         disp_stop,
+        faulty.ended,
+        faulty.wrong_move,
         Math.round(performance.now() * 100) / 100
     ].join('\t') + '\n';
     if (allstims.length > 0) {
@@ -283,11 +306,15 @@ function ending() {
         return (elem);
     });
     document.getElementById('task_id').style.display = 'none';
-    console.log('THE END');
+    document.getElementById('end_id').style.display = 'block';
     f_name = 'flick_sst_pilot1_' + jscd.os + '_' +
         jscd.browser + '_' + date_time + '_' + userid + '.txt';
     full_data += jscd_text + "\n" + JSON.stringify(full_touch_data);
     upload();
+    document.ontouchstart = () => {
+        fullscreen_off();
+        document.ontouchstart = null;
+    };
 }
 
 
@@ -320,40 +347,60 @@ function userid_check() {
 }
 
 // store data on server
-
-function upload() {
-    document.getElementById('end_id').innerHTML = "That's all, thank you! <h3>Please use the following Prolific completion link:</h3> [...] <br><br>(The data was successfully saved on the sever, you can close this page.)";
-    document.getElementById('end_id').style.display = 'block';
-    return;
-}
-
-
-function uploadOriginal() {
-    fetch('https://homepage.univie.ac.at/gaspar.lukacs/flick_sst_results/store.php', {
+const upload = function() {
+    document.getElementById("retry_button").disabled = true;
+    if (misc.demo) {
+        window.onbeforeunload = null;
+        document.getElementById('pass_id').innerHTML = '<i>(In case of participation via Prolific, the link would be provided here.)</i>';
+        return;
+    }
+    document.getElementById('pass_id').innerHTML += spinner_content;
+    document.documentElement.style.cursor = 'wait';
+    fetch('./php/store_main.php', {
         method: 'post',
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'text/plain'
         },
         body: JSON.stringify({
-            fname_post: f_name,
-            results_post: full_data
+            fname_post: file_name, // name of the file to be saved at the server
+            results_post: prep_file() // data (text content) of the file
         })
     })
         .then(response => response.text())
         .then(echoed => {
+            // in case of successful server connection [n27]
             console.log(echoed);
+            document.documentElement.style.cursor = 'auto';
             if (echoed.startsWith("http")) {
-                document.getElementById('end_id').innerHTML = "That's all, thank you! <h3>Please use the following Prolific completion link:</h3> <a href='" + echoed + "' target='_blank'>" + echoed + "</a><br><br>(The data was successfully saved on the sever, you can close this page.)";
-            }
-            if (document.getElementById('cancel_id').style.display !== 'block') {
-                document.getElementById('end_id').style.display = 'block';
+                // in case of message indicating successful file saving [n29]
+                // (here "http" indicates the reception of a completion link)
+                document.getElementById('save_fail').style.display = 'none';
+                document.getElementById('save_success').style.display = 'block';
+
+                // disable warning in case of page unload
+                window.onbeforeunload = null;
+
+                document.getElementById('pass_id').innerHTML = '<a href="' + echoed + '" target="_blank">' + echoed + '</a>';
+            } else {
+                // in case there was some issue with file saving
+                upload_fail();
+                document.getElementById('pass_id').innerHTML = echoed;
             }
         })
         .catch((error) => {
+            // in case of server error [n28]
             console.log('Request failed: ', error);
-            if (document.getElementById('cancel_id').style.display !== 'block') {
-                document.getElementById('end_id').style.display = 'block';
-            }
+            document.documentElement.style.cursor = 'auto';
+            upload_fail();
+            document.getElementById('pass_id').innerHTML = 'Server connection failed! ' + error;
         });
-}
+};
+
+// if the data was not saved successfully [n28]
+const upload_fail = function() {
+    document.getElementById("retry_button").disabled = false;
+    document.getElementById('retry_spin').innerHTML = '';
+    document.getElementById('save_fail').style.display = 'block';
+    document.getElementById('save_success').style.color = '#008000';
+};
