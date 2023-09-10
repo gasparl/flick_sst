@@ -7,28 +7,31 @@ let date_time, jscd_text, text_to_show, disp_start, disp_start_noRAF, disp_stop,
 let start_div = "intro_id", // default: intro_id | instructions_id | task_id | end_id
     trialnum = 0,
     startclicked = false,
-    userid = "noid",
     phase = "practice",
-    full_touch_data = [],
-    demo = false;
+    full_touch_data = [];
 const time_limit = 800;
+
+const misc = {
+    userid: "noid",
+    demo: false // whether this is a demonstration
+};
 
 document.addEventListener("DOMContentLoaded", function() {
 
     startButton = document.getElementById('button_id');
     stimulusElem = document.getElementById('stimulus_id');
     userid_check();
-    // define a small information box for continually updated info about the ongoing trials
-    let heads = ["os", "os_v", "browser", "browser_v", "screen", "GlRenderer", "Resolution", "Model"];
-    let cols = [jscd.os, jscd.osVersion, jscd.browser, jscd.browserVersion, jscd.screen, MobileDevice.getGlRenderer(), MobileDevice.getResolution(), MobileDevice.getModels().join(' or ')];
-    // let jscd_show = heads.map(function(hed, ind) {
-    //     return ('<br>' + hed + ': <b>' + cols[ind] + '</b>');
-    // });
-    date_time = neat_date();
-    heads.push("start");
-    cols.push(Math.round(performance.now() * 100) / 100);
-    jscd_text = 'client\t' + heads.join('/') + '\t' + cols.join('/');
 
+
+    misc.os = jscd.os;
+    misc.os_v = jscd.osVersion;
+    misc.browser = jscd.browser;
+    misc.browser_v = jscd.browserVersion;
+    misc.screen = jscd.screen;
+    misc.GlRenderer = MobileDevice.getGlRenderer();
+    misc.Resolution = MobileDevice.getResolution();
+    misc.Model = MobileDevice.getModels().join(' or ');
+    misc.date_time = neat_date();
 
     // TODO
     // if (!('ontouchmove' in window.document)) {
@@ -43,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 const cancel = function() {
     // TODO
-    if (!userid.startsWith("GL")) {
+    if (!misc.userid.startsWith("GL")) {
         document.getElementById('pretest_id').style.display = 'none';
         document.getElementById('cancel_id').style.display = 'block';
         f_name = 'flick_sst_x_pilot.txt';
@@ -83,6 +86,8 @@ function begin() {
                 ssd: ssd_it
             });
         });
+    } else {
+        misc.consented = Math.round(performance.now() * 100) / 100;
     }
     allstims = shuffle(allstims);
     document.getElementById('instructions_id').style.display = 'none';
@@ -271,7 +276,7 @@ let full_data = [
     "datetime_id",
     "phase",
     "trial_number",
-    "type",
+    "direction",
     "ssd",
     "cross_time",
     "disp_start",
@@ -322,9 +327,12 @@ function ending() {
     document.getElementById('task_id').style.display = 'none';
     document.getElementById('end_id').style.display = 'block';
     f_name = 'flick_sst_pilot1_' + jscd.os + '_' +
-        jscd.browser + '_' + date_time + '_' + userid + '.txt';
-    document.getElementById("subj_id").innerText = date_time + '_' + userid;
-    full_data += jscd_text + "\n" + JSON.stringify(full_touch_data);
+        jscd.browser + '_' + date_time + '_' + misc.userid + '.txt';
+    document.getElementById("subj_id").innerText = date_time + '_' + misc.userid;
+
+    misc.full_duration = parseFloat(((performance.now() - misc.consented) / 1000 / 60).toFixed(1));
+
+    full_data += JSON.stringify(misc) + "\n" + JSON.stringify(full_touch_data);
     upload();
     document.ontouchstart = () => {
         fullscreen_off();
@@ -350,14 +358,14 @@ function dl_as_file() {
 
 function userid_check() {
     window.params = new URLSearchParams(location.search);
-    userid = params.get('PROLIFIC_PID');
-    if (userid != null) {
+    misc.userid = params.get('PROLIFIC_PID');
+    if (misc.userid != null) {
         document.getElementById('pay_info').textContent = "Completed and valid participation will be rewarded with 0.40 GBP via Prolific.";
-        if (userid.startsWith("GL")) {
+        if (misc.userid.startsWith("GL")) {
             go();
         }
     } else {
-        userid = "noid";
+        misc.userid = "noid";
     }
 
     if (params.get('demo') !== null) {
