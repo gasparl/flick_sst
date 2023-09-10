@@ -2,7 +2,7 @@
 /*jshint esversion: 6 */
 
 // define global variables
-let date_time, jscd_text, text_to_show, disp_start, disp_start_noRAF, disp_stop, faulty,
+let text_to_show, disp_start, disp_start_noRAF, disp_stop, faulty,
     input_time, allstims, f_name, startButton, stimulusElem, trial_touch_data, cross_time;
 let start_div = "intro_id", // default: intro_id | instructions_id | task_id | end_id
     trialnum = 0,
@@ -50,7 +50,7 @@ const cancel = function() {
         document.getElementById('pretest_id').style.display = 'none';
         document.getElementById('cancel_id').style.display = 'block';
         f_name = 'flick_sst_x_pilot.txt';
-        full_data = jscd_text + '\t' + date_time + '\n';
+        full_data = jscd_text + '\t' + misc.date_time + '\n';
         upload();
     }
 };
@@ -191,6 +191,7 @@ const runtrial = function() {
     trialnum++;
     disp_start = "NA";
     disp_stop = "NA";
+    rt_end = "NA";
     current_stim = allstims.shift(); // get next stimulus dictionary
     console.log(current_stim); // print info
 
@@ -220,7 +221,6 @@ const runtrial = function() {
 
 let frameRectMiddle, leftLineRectRight, rightLineRectLeft, startButtonRectTop;
 
-
 const getFramePos = function() {
     leftLineRectRight = document.getElementById('left_id').getBoundingClientRect().right;
     rightLineRectLeft = document.getElementById('right_id').getBoundingClientRect().left;
@@ -247,23 +247,43 @@ const get_coords = function(event, type) {
         const relativeX = currentTouch.clientX - frameRectMiddle;
 
         // Calculate Y coordinate relative to the horizontal top of the "button_id" element
-        const relativeY = currentTouch.clientY - startButtonRectTop;
+        const relativeY = startButtonRectTop - currentTouch.clientY;
 
         trial_touch_data.push([event.timeStamp, relativeX, relativeY, type]);
     }
 
     // Detect if touch crosses the lines
     if ((currentTouch.clientX <= leftLineRectRight && current_stim.item === '←') || (currentTouch.clientX >= rightLineRectLeft && current_stim.item === '→')) {
-        fullscreen_on();
         stimulusElem.textContent = '';
         startButton.ontouchmove = null;
         startButton.ontouchstart = null;
         startButton.ontouchend = null;
+        fullscreen_on();
+
+        const lastTouchData = trial_touch_data[trial_touch_data.length - 2];
+        const currentTouchData = trial_touch_data[trial_touch_data.length - 1];
+
+        if (lastTouchData && currentTouchData) {
+            const targetX = current_stim.item === '←' ? (leftLineRectRight - frameRectMiddle) : (rightLineRectLeft - frameRectMiddle);
+            rt_end = calculateCrossingTime(lastTouchData, currentTouchData, targetX);
+        } else {
+            rt_end = event.timeStamp;  // Fallback to current timestamp
+        }
+
         if (phase === "practice") {
             store_trial();
         }
     }
 };
+
+function calculateCrossingTime(lastTouchData, currentTouchData, targetX) {
+    const [lastTouchTime, lastTouchX] = lastTouchData;
+    const [currentTouchTime, currentTouchX] = currentTouchData;
+
+    const proportion = (targetX - lastTouchX) / (currentTouchX - lastTouchX);
+    return lastTouchTime + proportion * (currentTouchTime - lastTouchTime);
+}
+
 
 const randomdigit = function(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -291,7 +311,7 @@ function store_trial() {
     full_touch_data.push(...trial_touch_data);
     stimulusElem.textContent = '';
     full_data += [
-        date_time,
+        misc.date_time,
         phase,
         trialnum,
         current_stim.item,
@@ -327,8 +347,8 @@ function ending() {
     document.getElementById('task_id').style.display = 'none';
     document.getElementById('end_id').style.display = 'block';
     f_name = 'flick_sst_pilot1_' + jscd.os + '_' +
-        jscd.browser + '_' + date_time + '_' + misc.userid + '.txt';
-    document.getElementById("subj_id").innerText = date_time + '_' + misc.userid;
+        jscd.browser + '_' + misc.date_time + '_' + misc.userid + '.txt';
+    document.getElementById("subj_id").innerText = misc.date_time + '_' + misc.userid;
 
     misc.full_duration = parseFloat(((performance.now() - misc.consented) / 1000 / 60).toFixed(1));
 
