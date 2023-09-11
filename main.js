@@ -191,7 +191,7 @@ const runtrial = function() {
     trialnum++;
     disp_start = "NA";
     disp_stop = "NA";
-    rt_end = "NA";
+    response_end = {};
     current_stim = allstims.shift(); // get next stimulus dictionary
     console.log(current_stim); // print info
 
@@ -265,9 +265,8 @@ const get_coords = function(event, type) {
 
         if (lastTouchData && currentTouchData) {
             const targetX = current_stim.item === '←' ? (leftLineRectRight - frameRectMiddle) : (rightLineRectLeft - frameRectMiddle);
-            rt_end = calculateCrossingTime(lastTouchData, currentTouchData, targetX);
-        } else {
-            rt_end = event.timeStamp;  // Fallback to current timestamp
+            
+            response_end = calculateCrossingTime(lastTouchData, currentTouchData, targetX);
         }
 
         if (phase === "practice") {
@@ -276,12 +275,17 @@ const get_coords = function(event, type) {
     }
 };
 
-function calculateCrossingTime(lastTouchData, currentTouchData, targetX) {
-    const [lastTouchTime, lastTouchX] = lastTouchData;
-    const [currentTouchTime, currentTouchX] = currentTouchData;
+const calculateCrossingDetails = function(lastTouchData, currentTouchData, targetX) {
+    const [lastTouchTime, lastTouchX, lastTouchY] = lastTouchData;
+    const [currentTouchTime, currentTouchX, currentTouchY] = currentTouchData;
 
     const proportion = (targetX - lastTouchX) / (currentTouchX - lastTouchX);
-    return lastTouchTime + proportion * (currentTouchTime - lastTouchTime);
+
+    const interpolatedTime = lastTouchTime + proportion * (currentTouchTime - lastTouchTime);
+    const interpolatedX = targetX;
+    const interpolatedY = lastTouchY + proportion * (currentTouchY - lastTouchY);
+
+    return { time: interpolatedTime, x: interpolatedX, y: interpolatedY };
 }
 
 
@@ -302,6 +306,9 @@ let full_data = [
     "disp_start",
     "disp_start_noRAF",
     "disp_stop",
+    "r_time",
+    "r_x",
+    "r_y",
     "ended",
     "wrong_move",
     "time_now"
@@ -320,6 +327,9 @@ function store_trial() {
         disp_start,
         disp_start_noRAF,
         disp_stop,
+        response_end.time,
+        response_end.x,
+        response_end.y,
         faulty.ended,
         faulty.wrong_move,
         Math.round(performance.now() * 100) / 100
