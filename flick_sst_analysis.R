@@ -10,7 +10,7 @@ setwd(path_neat('/../sst_results')) # set the result files' folder path as curre
 
 do_plot = TRUE
 epoch_minus = 100
-epoch_plus = 900
+epoch_plus = 1200
 
 vel_adjust = 5
 
@@ -19,8 +19,8 @@ remove_outliers <- function(df, column_name) {
     Q3 <- quantile(df[[column_name]], 0.75, na.rm = TRUE)
     IQR <- Q3 - Q1
     
-    lower_bound <- Q1 - 1.5 * IQR
-    upper_bound <- Q3 + 1.5 * IQR
+    lower_bound <- Q1 - 3 * IQR
+    upper_bound <- Q3 + 3 * IQR
     
     df <- df[df[[column_name]] >= lower_bound & df[[column_name]] <= upper_bound,]
     return(df)
@@ -39,8 +39,9 @@ plot_epoch <-  function(rowx, movement_epoch, file_name) {
                 labs(x = "X", y = "Y") +
                 geom_path() +
                 geom_vline(xintercept = c(-220, 220), linetype = "dashed", color = "green") +
-                coord_cartesian(xlim = c(-250, 250), ylim = c(0, 300)) +
-                theme_bw(base_size = 16)
+                xlim(-250, 250) +
+                ylim(0, 300) +
+                theme_bw(base_size = 26)
         } else {
             temp_data = data.frame(time = movement_epoch$time, value = movement_epoch[[data_type]], type = data_type)
             
@@ -51,6 +52,14 @@ plot_epoch <-  function(rowx, movement_epoch, file_name) {
             
             combined_data <- rbind(combined_data, temp_data)
         }
+    }
+    
+    if (!is.na(rowx$r_x) && !is.na(rowx$r_y)) {
+        trajectory_plot = trajectory_plot +
+            geom_point(aes(x = rowx$r_x, y = rowx$r_y), color = "green", shape = 19, size = 5)
+    } else {
+        trajectory_plot = trajectory_plot +
+            geom_point(aes(x = tail(movement_epoch$x, 1), y = tail(movement_epoch$y, 1)), color = "red", shape = 15, size = 5)
     }
     
     timeline_plot = ggplot(data = combined_data, aes(x = time, y = value, color = type, linetype = type)) +
@@ -71,7 +80,7 @@ plot_epoch <-  function(rowx, movement_epoch, file_name) {
             linetype = FALSE
         ) +
         scale_y_continuous(name = "coordinate", limits = c(-250, 250), sec.axis = sec_axis(~ . * vel_adjust / 250, name = "velocity")) +
-        theme_bw(base_size = 16)+
+        theme_bw(base_size = 26)+
         labs(
             title = paste0(
                 's. #',
@@ -101,12 +110,24 @@ plot_epoch <-  function(rowx, movement_epoch, file_name) {
                 aes(
                     x = rowx$disp_stop,
                     label = "Stop",
-                    y = 250 * 0.8
+                    y = -250 * 0.65
                 ),
                 nudge_x = 25,
                 colour = "#cc0000",
-                angle = 90
+                angle = 90,
+                size = 10
             )
+    }
+    
+    if (!is.na(rowx$r_time) && !is.na(rowx$r_x) && !is.na(rowx$r_y)) {
+        timeline_plot = timeline_plot +
+            geom_point(aes(x = rowx$r_time, y = rowx$r_x), color = "green", shape = 19, size = 5) +
+            geom_vline(xintercept = rowx$r_time, color = "green", linetype = "dotted")
+    } else {
+        last_time = tail(movement_epoch$time, 1)
+        timeline_plot = timeline_plot +
+            geom_point(aes(x = last_time, y =  tail(movement_epoch$x, 1)), color = "red", shape = 15, size = 5) +
+            geom_vline(xintercept = last_time, color = "red", linetype = "dotted")
     }
     
     combined_plot = ggarrange(plotlist = list(timeline_plot, trajectory_plot),
@@ -123,12 +144,18 @@ plot_epoch <-  function(rowx, movement_epoch, file_name) {
     )
 }
 
+
 plot_aggregate <- function(all_epochs_li, subj_num) {
     
-    vel_adjust_agg = 2 
+    vel_adjust_agg = 3
+    
+    # Extract touch_epoch and rowx from all_epochs_li
+    touch_epochs_li <- lapply(all_epochs_li, function(item) item$touch_epoch)
+    rowx_li <- lapply(all_epochs_li, function(item) item$rowx)
+    
     # Add epoch_id and normalize time to each epoch data frame
-    all_epochs_li <- lapply(seq_along(all_epochs_li), function(i) {
-        epoch <- all_epochs_li[[i]]
+    touch_epochs_li <- lapply(seq_along(touch_epochs_li), function(i) {
+        epoch <- touch_epochs_li[[i]]
         min_time <- min(epoch$time, na.rm = TRUE)
         epoch$time <- epoch$time - min_time
         epoch$epoch_id <- i
@@ -136,7 +163,7 @@ plot_aggregate <- function(all_epochs_li, subj_num) {
     })
     
     # Combine all epochs into one data frame
-    all_epochs <- do.call(rbind, all_epochs_li)
+    all_epochs <- do.call(rbind, touch_epochs_li)
     setDT(all_epochs)  # Convert to data.table
     
     # Handle the case of empty all_epochs
@@ -149,7 +176,7 @@ plot_aggregate <- function(all_epochs_li, subj_num) {
     time_seq <- seq(0, max_time, by = 10)
     
     # Resample each epoch to the common time sequence
-    resampled_data <- rbindlist(lapply(all_epochs_li, function(epoch) {
+    resampled_data <- rbindlist(lapply(touch_epochs_li, function(epoch) {
         epoch_data <- data.frame(
             time = time_seq,
             x = approx(epoch$time, abs(epoch$x), time_seq, rule = 2)$y,
@@ -177,22 +204,36 @@ plot_aggregate <- function(all_epochs_li, subj_num) {
         geom_line(data = summary_data, aes(x = time, y = avg_x, color = "X"), size = 1) +
         geom_ribbon(data = summary_data, aes(x = time, ymin = avg_y - se_y, ymax = avg_y + se_y), fill = "red", alpha = 0.2) +
         geom_line(data = summary_data, aes(x = time, y = avg_y, color = "Y"), size = 1) +
-        geom_ribbon(data = summary_data, aes(x = time, ymin = (avg_velocity / vel_adjust_agg) * 250 - se_velocity, ymax = (avg_velocity / vel_adjust_agg) * 250 + se_velocity), fill = "green", alpha = 0.2) +
+        geom_ribbon(data = summary_data, aes(x = time, ymin = (avg_velocity / vel_adjust_agg) * 250 - (se_velocity / vel_adjust_agg) * 250, ymax = (avg_velocity / vel_adjust_agg) * 250 + (se_velocity / vel_adjust_agg) * 250), fill = "green", alpha = 0.2) +
         geom_line(data = summary_data, aes(x = time, y = (avg_velocity / vel_adjust_agg) * 250, color = "Velocity"), size = 1) +
         scale_color_manual(values = c("X" = "blue", "Y" = "red", "Velocity" = "green")) +
-        scale_y_continuous(name = "Distance",
-                           sec.axis = sec_axis(~ . * vel_adjust_agg / 250, name = "Velocity")) +
-        theme_bw(base_size = 16) +
+        scale_y_continuous(name = "Distance (pixels)",
+                           sec.axis = sec_axis(~ . * vel_adjust_agg / 250, name = "Velocity (pixel/ms)")) +
+        theme_bw(base_size = 26) +
+        xlab("Time (ms)") +
         labs(color = "Metrics")
     
     # Plot the trajectory for each epoch
     trajectory_plot <- ggplot(data = all_epochs, aes(x = x, y = y, group = interaction(epoch_id))) +
         geom_vline(xintercept = c(-220, 220), linetype = "dashed", color = "green") +
-        geom_path(aes(color = as.factor(epoch_id)), alpha = 0.4) +
-        coord_cartesian(xlim = c(-250, 250), ylim = c(0, 300)) +
-        theme_bw(base_size = 16) +
+        geom_path(aes(color = as.factor(epoch_id)), alpha = 0.7) +
+        xlim(-250, 250) +
+        ylim(0, 300) +
+        theme_bw(base_size = 26) +
         theme(legend.position = "none")
     
+    # Add endpoint indicators
+    for (i in seq_along(rowx_li)) {
+        if (!is.na(rowx_li[[i]]$r_y)) {
+            trajectory_plot <- trajectory_plot + 
+                annotate("point", x = rowx_li[[i]]$r_x, y = rowx_li[[i]]$r_y, color = "green", shape = 19, size = 2)  # Green diamond
+        } else {
+            last_point <- tail(touch_epochs_li[[i]], 1)
+            trajectory_plot <- trajectory_plot + 
+                annotate("point", x = last_point$x, y = last_point$y, color = "red", shape = 15, size = 2)  # Red X
+        }
+    }
+
     # Combine both plots into one
     combined_plot <- ggarrange(plotlist = list(timeline_plot, trajectory_plot), ncol = 1, nrow = 2)
     
@@ -200,6 +241,7 @@ plot_aggregate <- function(all_epochs_li, subj_num) {
     ggsave(paste0('./figs/aggregate_combined_fig_', subj_num, '.jpeg'), combined_plot, units = "mm", width = 400, height = 400, dpi = 300)
 }
 
+plot_aggregate(all_epochs_list, file_name[1])
 
 ##
 
@@ -235,8 +277,6 @@ for (file_name in enum(filenames)) {
     subject_data$direction[subject_data$direction == '←'] = 'left'
     subject_data$direction[subject_data$direction == '→'] = 'right'
     
-    touch_data$y = -touch_data$y
-    
     # Calculate distance and time differences
     touch_data[, `:=`(
         dx = c(NA, diff(x)),
@@ -251,7 +291,7 @@ for (file_name in enum(filenames)) {
     
     # Remove columns used for calculations
     touch_data[, c("dx", "dy", "dt") := NULL]
-    
+    #subject_data = subject_data[trial_number == 23]
     for (i in seq_len(nrow(subject_data))) {
         rowx = subject_data[i]
         
@@ -260,20 +300,20 @@ for (file_name in enum(filenames)) {
         
         touch_epoch = touch_data[(touch_data$time >= epoch_start &
                                       touch_data$time <= epoch_end)]
+        
         if (do_plot) {
             if (nrow(touch_epoch) > 3) {
-                all_epochs_list[[length(all_epochs_list) + 1]] <- touch_epoch
+                all_epochs_list[[length(all_epochs_list) + 1]] <- list(touch_epoch = touch_epoch, rowx = rowx)
                 plot_epoch(rowx, touch_epoch, file_name)
                 # plot(touch_plot)
                 # message("trial: ", rowx$trial_number)
-                
             } else {
                 message("MISSED trial: ", rowx$trial_number)
             }
         }
     }
     
-    plot_aggregate(all_epochs_list, file_name[0])
+    plot_aggregate(all_epochs_list, file_name[1])
     
     rbind_loop(subjects_merged,
                misc_info)

@@ -63,7 +63,7 @@ function begin() {
 
     let reps = 5;
     if (phase == "main") {
-        reps = 10;
+        reps = 15;
     }
     allstims = new Array(reps).fill({
         item: "→",
@@ -234,11 +234,6 @@ const getFramePos = function() {
 const get_coords = function(event, type) {
     event.preventDefault();
 
-    if (event.changedTouches.length === 0) {
-        console.warn('No changed touches available');
-        return;
-    }
-
     const currentTouch = event.changedTouches[0];
 
     // store relative coordinates
@@ -254,24 +249,24 @@ const get_coords = function(event, type) {
 
     // Detect if touch crosses the lines
     if ((currentTouch.clientX <= leftLineRectRight && current_stim.item === '←') || (currentTouch.clientX >= rightLineRectLeft && current_stim.item === '→')) {
-        stimulusElem.textContent = '';
         startButton.ontouchmove = null;
         startButton.ontouchstart = null;
         startButton.ontouchend = null;
-        fullscreen_on();
+        stimulusElem.textContent = '';
 
         const lastTouchData = trial_touch_data[trial_touch_data.length - 2];
         const currentTouchData = trial_touch_data[trial_touch_data.length - 1];
 
         if (lastTouchData && currentTouchData) {
             const targetX = current_stim.item === '←' ? (leftLineRectRight - frameRectMiddle) : (rightLineRectLeft - frameRectMiddle);
-            
-            response_end = calculateCrossingTime(lastTouchData, currentTouchData, targetX);
+
+            response_end = calculateCrossingDetails(lastTouchData, currentTouchData, targetX);
         }
 
         if (phase === "practice") {
             store_trial();
         }
+        fullscreen_on();
     }
 };
 
@@ -286,7 +281,7 @@ const calculateCrossingDetails = function(lastTouchData, currentTouchData, targe
     const interpolatedY = lastTouchY + proportion * (currentTouchY - lastTouchY);
 
     return { time: interpolatedTime, x: interpolatedX, y: interpolatedY };
-}
+};
 
 
 const randomdigit = function(min, max) {
@@ -344,18 +339,20 @@ function store_trial() {
             document.getElementById('instructions2_id').style.display = 'block';
         }, 500);
     } else {
-        setTimeout(ending, 500);
+        ending();
     }
 }
 
 // change rectangle color to blue to indicate experiment ending
 function ending() {
+    setTimeout(() => {
+        document.getElementById('task_id').style.display = 'none';
+        document.getElementById('end_id').style.display = 'block';
+    }, 1000);
     full_touch_data = full_touch_data.map(elem => {
         elem[0] = Math.round(elem[0] * 100) / 100;
         return (elem);
     });
-    document.getElementById('task_id').style.display = 'none';
-    document.getElementById('end_id').style.display = 'block';
     f_name = 'flick_sst_pilot1_' + jscd.os + '_' +
         jscd.browser + '_' + misc.date_time + '_' + misc.userid + '.txt';
     document.getElementById("subj_id").innerText = misc.date_time + '_' + misc.userid;
