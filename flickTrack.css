@@ -16,7 +16,7 @@ html {
                                     supported by Chrome, Edge, Opera and Firefox */
 }
 
-#stop_id {
+#flick-stop {
     font-size: 35px;
     top: 35%;
     left: 50%;
@@ -25,7 +25,7 @@ html {
     transform: translate(-50%, -50%);
 }
 
-.stimulus_class {
+.flick-stim-class {
     font-family: Arial;
     position: absolute;
     top: 5px;
@@ -34,7 +34,7 @@ html {
     font-size: 35px;
 }
 
-.frame_class {
+.flick-frame-class {
     border-top: 3px solid #000000;
     border-bottom: 3px solid #000000;
     border-right: none;
@@ -47,14 +47,14 @@ html {
     transform: translate(-50%, -50%);
 }
 
-.frame_demo {
+.flick-frame-demo {
     position: relative;
     transform: none;
     left: auto;
     margin: 0 auto;
 }
 
-.button_circle {
+.flick-button-circle {
     position: absolute;
     bottom: 5px;
     left: 50%;
@@ -72,13 +72,13 @@ html {
     background-color: #aaaaaa;
 }
 
-.button_highlight {
+.flick-button-highlight {
     background-color: #888888;
     box-shadow: 0 2px 0 0 #666666;
 }
 
-.left_line,
-.right_line {
+.flick-left-line,
+.flick-right-line {
     position: absolute;
     top: 0;
     bottom: 0;
@@ -86,10 +86,10 @@ html {
     background-color: green;
 }
 
-.left_line {
+.flick-left-line {
     left: 30px;
 }
 
-.right_line {
+.flick-right-line {
     right: 30px;
 }

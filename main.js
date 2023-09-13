@@ -104,13 +104,13 @@ const warn_touch = function() {
     clearTimeout(go_TO);
     startButton.innerHTML = '❗';
     stimulusElem.innerHTML = 'Please touch the button to start the next trial.';
-    startButton.classList.add('button_highlight');
+    startButton.classList.add('flick-button-highlight');
 };
 
 const highlight_remove = function() {
     startButton.innerHTML = '';
     stimulusElem.innerHTML = '';
-    startButton.classList.remove('button_highlight');
+    startButton.classList.remove('flick-button-highlight');
 };
 
 // Helper function to check if a point is inside a circle
@@ -127,11 +127,11 @@ function trial_start() {
     trial_touch_data = [];
     getFramePos();
     warning_TO = setTimeout(() => {
-        if (startButton.classList.contains("button_highlight")) {
+        if (startButton.classList.contains("flick-button-highlight")) {
             warn_touch();
         }
     }, 3000);
-    startButton.classList.add('button_highlight');
+    startButton.classList.add('flick-button-highlight');
     startButton.ontouchmove = null;
     startButton.ontouchend = null;
     startButton.ontouchstart = function(ev) {
