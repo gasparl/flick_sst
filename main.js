@@ -76,18 +76,20 @@ function begin() {
         });
     }
     if (phase == "main") {
-        [100, 150, 200, 250, 300].forEach((ssd_it) => {
-            allstims.push({
-                item: "→",
-                ssd: ssd_it
+        for (let i = 0; i < 2; i++) {
+            [100, 150, 200, 250, 300].forEach((ssd_it) => {
+                allstims.push({
+                    item: "→",
+                    ssd: ssd_it
+                });
+                allstims.push({
+                    item: "←",
+                    ssd: ssd_it
+                });
             });
-            allstims.push({
-                item: "←",
-                ssd: ssd_it
-            });
-        });
+        }
     } else {
-        misc.consented = Math.round(performance.now() * 100) / 100;
+        misc.consented =roundTo2(performance.now());
     }
     allstims = shuffle(allstims);
     document.getElementById('instructions_id').style.display = 'none';
@@ -158,7 +160,7 @@ function trial_start() {
                 if (stimulusElem.textContent === '↑' && currentTouch.clientY < buttonRect.top &&
                     currentTouch.clientX >= buttonRect.left && currentTouch.clientX <= buttonRect.right) {
                     console.log('Touch moved upwards and left the button.');
-                    cross_time = Math.round(event.timeStamp * 100) / 100;
+                    cross_time = roundTo2(event.timeStamp);
                     runtrial();
                 } else if (
                     currentTouch.clientY > buttonRect.bottom ||
@@ -195,14 +197,15 @@ const runtrial = function() {
     current_stim = allstims.shift(); // get next stimulus dictionary
     console.log(current_stim); // print info
 
-    disp_start_noRAF = Math.round(performance.now() * 100) / 100;
+    disp_start_noRAF = roundTo2(performance.now());
     requestAnimationFrame(function(stamp) {
         stimulusElem.textContent = current_stim.item;
-        disp_start = Math.round(stamp * 100) / 100; // the crucial (start) JS-timing
+        disp_start = roundTo2(stamp); // the crucial (start) JS-timing
         if (current_stim.ssd > 0) {
             setTimeout(function() {
                 requestAnimationFrame(function(stamp2) {
                     stimulusElem.textContent = 'x ' + stimulusElem.textContent + ' x';
+                    document.getElementById("frame_id").style.backgroundColor = "red";
                     disp_stop = stamp2;
                 });
 
@@ -288,6 +291,11 @@ const randomdigit = function(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
+const roundTo2 = function(number) {
+    return Math.round(number * 100) / 100;
+}
+
+
 //*** storing data, etc. ***//
 
 // column names for the data to be saved
@@ -312,6 +320,7 @@ let full_data = [
 function store_trial() {
     full_touch_data.push(...trial_touch_data);
     stimulusElem.textContent = '';
+    document.getElementById("frame_id").style.backgroundColor = "";
     full_data += [
         misc.date_time,
         phase,
@@ -327,7 +336,7 @@ function store_trial() {
         response_end.y,
         faulty.ended,
         faulty.wrong_move,
-        Math.round(performance.now() * 100) / 100
+        roundTo2(performance.now())
     ].join('\t') + '\n';
     faulty = { ended: 0, wrong_move: 0 };
     if (allstims.length > 0) {
@@ -350,7 +359,9 @@ function ending() {
         document.getElementById('end_id').style.display = 'block';
     }, 1000);
     full_touch_data = full_touch_data.map(elem => {
-        elem[0] = Math.round(elem[0] * 100) / 100;
+        elem[0] = roundTo2(elem[0]);
+        elem[1] = roundTo2(elem[1]);
+        elem[2] = roundTo2(elem[2]);
         return (elem);
     });
     f_name = 'flick_sst_pilot1_' + jscd.os + '_' +

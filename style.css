@@ -53,13 +53,12 @@ body {
 }
 
 .stimulus_class {
-    font-size: 65px;
     font-family: Arial;
     position: absolute;
     top: 5px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 22px;
+    font-size: 35px;
 }
 
 

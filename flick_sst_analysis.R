@@ -8,21 +8,19 @@ library('viridis')
 
 setwd(path_neat('/../sst_results')) # set the result files' folder path as current working directory
 
+
+filenames = list.files(pattern = "^flick_sst_pilot.*\\.txt$") # get all result file names
+
 do_plot = TRUE
+do_plot_epoch = TRUE
 epoch_minus = 100
 epoch_plus = 1200
 
-vel_adjust = 5
+vel_adjust = 10
+vel_adjust_agg = 5
 
 remove_outliers <- function(df, column_name) {
-    Q1 <- quantile(df[[column_name]], 0.25, na.rm = TRUE)
-    Q3 <- quantile(df[[column_name]], 0.75, na.rm = TRUE)
-    IQR <- Q3 - Q1
-    
-    lower_bound <- Q1 - 3 * IQR
-    upper_bound <- Q3 + 3 * IQR
-    
-    df <- df[df[[column_name]] >= lower_bound & df[[column_name]] <= upper_bound,]
+    df[df[[column_name]] > vel_adjust, column_name] <- vel_adjust
     return(df)
 }
 
@@ -135,7 +133,7 @@ plot_epoch <-  function(rowx, movement_epoch, file_name) {
                               nrow = 2)
     
     ggsave(
-        filename = paste0('./figs/combined_fig_', file_name[1], '_', rowx$trial_number, '.jpeg'),
+        filename = paste0('./figs/trial_fig_', file_name[1], '_', rowx$trial_number, '.jpeg'),
         plot = combined_plot,
         units = "mm",
         width = 400,
@@ -146,9 +144,6 @@ plot_epoch <-  function(rowx, movement_epoch, file_name) {
 
 
 plot_aggregate <- function(all_epochs_li, subj_num) {
-    
-    vel_adjust_agg = 3
-    
     # Extract touch_epoch and rowx from all_epochs_li
     touch_epochs_li <- lapply(all_epochs_li, function(item) item$touch_epoch)
     rowx_li <- lapply(all_epochs_li, function(item) item$rowx)
@@ -238,22 +233,17 @@ plot_aggregate <- function(all_epochs_li, subj_num) {
     combined_plot <- ggarrange(plotlist = list(timeline_plot, trajectory_plot), ncol = 1, nrow = 2)
     
     # Save the combined plot
-    ggsave(paste0('./figs/aggregate_combined_fig_', subj_num, '.jpeg'), combined_plot, units = "mm", width = 400, height = 400, dpi = 300)
+    ggsave(paste0('./figs/aggregate_fig_', subj_num, '.jpeg'), combined_plot, units = "mm", width = 400, height = 400, dpi = 300)
 }
-
-plot_aggregate(all_epochs_list, file_name[1])
 
 ##
 
-
-filenames = list.files(pattern = "^flick_sst_pilot.*\\.txt$") # get all result file names
-
 # merge all data
 data_merged = data.table()
-all_epochs_list <- list()
 
 for (file_name in enum(filenames)) {
     #  file_name = c(0, filenames[1])
+    all_epochs_list <- list()
     
     # print current file name - just to monitor the process
     cat(file_name, fill = TRUE)
@@ -294,17 +284,21 @@ for (file_name in enum(filenames)) {
     #subject_data = subject_data[trial_number == 23]
     for (i in seq_len(nrow(subject_data))) {
         rowx = subject_data[i]
+        # rowx = subject_data[7]
         
-        epoch_start = rowx$disp_start - epoch_minus
-        epoch_end = rowx$disp_start + epoch_plus
-        
+        epoch_start = rowx$disp_start - epoch_minus #-5000
+        epoch_end = rowx$disp_start + epoch_plus #+5000
         touch_epoch = touch_data[(touch_data$time >= epoch_start &
                                       touch_data$time <= epoch_end)]
         
         if (do_plot) {
             if (nrow(touch_epoch) > 3) {
-                all_epochs_list[[length(all_epochs_list) + 1]] <- list(touch_epoch = touch_epoch, rowx = rowx)
-                plot_epoch(rowx, touch_epoch, file_name)
+                if (is.na(rowx$disp_stop)) {
+                    all_epochs_list[[length(all_epochs_list) + 1]] <- list(touch_epoch = touch_epoch, rowx = rowx)
+                }
+                if (do_plot_epoch) {
+                    plot_epoch(rowx, touch_epoch, file_name)
+                }
                 # plot(touch_plot)
                 # message("trial: ", rowx$trial_number)
             } else {
