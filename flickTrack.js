@@ -1,6 +1,8 @@
 // @ts-nocheck
 /*jshint esversion: 6 */
 
+let startButton, stimulusElem;
+
 document.addEventListener("DOMContentLoaded", () => {
 
     startButton = document.getElementById('flick-button');
@@ -11,9 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
     //     cancel();
     //     return;
     // }
-
-    // startpage
-    document.getElementById(start_div).style.display = 'block';
 
 });
 
@@ -30,6 +29,7 @@ const flick = {
     startSign: null,
     ongoing: false,
     maxTrialDuration: Infinity,
+    startTime: undefined,
 
     warnTouch: () => {
         clearTimeout(flick.goTO);
@@ -53,7 +53,7 @@ const flick = {
 
     onCrossing: () => { },
 
-    trialStart: (callOnCrossing, isLeft, allowedSides = { top: true, bottom: true, left: true, right: true }) => {
+    trialStart: (isLeft, allowedSides = { top: true, bottom: true, left: true, right: true }, callOnCrossing) => {
         flick.onCrossing = callOnCrossing;
         flick.trialData = [];
         flick.getFramePos();
@@ -81,8 +81,11 @@ const flick = {
                 clearTimeout(flick.warningTO);
                 if (flick.startSign !== null) {
                     flick.goTO = setTimeout(() => {
+                        flick.startTime = performance.now();
                         stimulusElem.textContent = flick.startSign;
                         flick.ongoing = true;
+                        // recatch position, just to be sure (e.g., if fullscreen was entered)
+                        flick.getFramePos();
                     }, 50);
                 }
 
@@ -112,7 +115,7 @@ const flick = {
                             startButton.ontouchstart = null;
                             startButton.ontouchmove = null;
                             startButton.ontouchend = null;
-                            flick.getCoords(event, 8, isLeft)
+                            flick.getCoords(event, 8, isLeft);
                             startButton.ontouchstart = e => flick.getCoords(e, 0, isLeft);
                             startButton.ontouchmove = e => flick.getCoords(e, 1, isLeft);
                             startButton.ontouchend = e => flick.getCoords(e, 2, isLeft);
@@ -155,7 +158,7 @@ const flick = {
         const currentTouch = event.changedTouches[0];
 
         // store relative coordinates
-        if ((performance.now() - trialInfo.start) < flick.maxTrialDuration) {
+        if ((performance.now() - flick.startTime) < (flick.maxTrialDuration + 100)) {
             // Calculate X coordinate relative to the vertical middle of the "flick-frame" element
             const relativeX = currentTouch.clientX - flick.frameMiddle;
 
@@ -177,9 +180,14 @@ const flick = {
 
             if (lastTouchData && currentTouchData) {
                 const targetX = isLeft ? (flick.leftLine - flick.frameMiddle) : (flick.rightLine - flick.frameMiddle);
-                flick.calculateCrossingDetails(lastTouchData, currentTouchData, targetX);
+                crossingData = flick.calculateCrossingDetails(lastTouchData, currentTouchData, targetX);
+                // Insert the interpolated crossing data right before the last element
+                const interpolatedData = [crossingData.time, crossingData.x, crossingData.y, 9]; // type 9 for crossing data
+                flick.trialData.splice(flick.trialData.length - 1, 0, interpolatedData);
+            } else {
+                crossingData = { time: currentTouchData[0], x: currentTouchData[1], y: currentTouchData[2] };
             }
-            flick.onCrossing();
+            flick.onCrossing(crossingData);
         }
     },
 
@@ -192,7 +200,7 @@ const flick = {
         const interpolatedTime = lastTouchTime + proportion * (currentTouchTime - lastTouchTime);
         const interpolatedX = targetX;
         const interpolatedY = lastTouchY + proportion * (currentTouchY - lastTouchY);
-        flick.trialData.splice(flick.trialData.length - 1, 0, [interpolatedTime, interpolatedX, interpolatedY, 9]);
+        return { time: interpolatedTime, x: interpolatedX, y: interpolatedY };
     },
 
     roundTo2: function(number) {

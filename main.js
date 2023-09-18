@@ -3,7 +3,7 @@
 
 // define global variables
 let text_to_show, faulty,
-    input_time, allstims, f_name, startButton, stimulusElem, cross_time;
+    input_time, allstims, f_name, cross_time;
 let start_div = "intro_id", // default: intro_id | instructions_id | task_id | end_id
     trialnum = 0,
     startclicked = false,
@@ -184,9 +184,9 @@ const trial_start = () => {
     current_stim = allstims.shift(); // get next stimulus dictionary
     console.log(current_stim); // print info
     flick.trialStart(
-        callOnCrossing,
         correctSide === 'left',
-        misc.design === '1' ? { left: true, right: true } : { top: true }
+        misc.design === '1' ? { left: true, right: true } : { top: true },
+        callOnCrossing
     );
 
     trialInfo.start_noRAF = flick.roundTo2(performance.now());
@@ -212,7 +212,8 @@ const trial_start = () => {
 };
 
 
-const callOnCrossing = () => {
+const callOnCrossing = (crossInfo) => {
+    cross_time = crossInfo.time;
     if (phase === "practice") {
         store_trial();
     }
@@ -234,9 +235,9 @@ let full_data = [
     "direction",
     "ssd",
     "cross_time",
-    "trialInfo.start",
-    "trialInfo.start_noRAF",
-    "trialInfo.stopSignal",
+    "start",
+    "start_noRAF",
+    "stopSignal",
     "r_time",
     "r_x",
     "r_y",
