@@ -25,6 +25,22 @@
             (This is a demo version of the application; more or less compatible with all devices.)
         </p>
 
+        <p>
+            Select version:
+        </p>
+
+        <p>
+            <label>
+                <input type="radio" name="design" value="1"> Horizontal
+            </label>
+            <label>
+                <input type="radio" name="design" value="2"> T-landscape
+            </label>
+            <label>
+                <input type="radio" name="design" value="3"> T-portrait
+            </label>
+        </p>
+
         <p><b>Aim:</b>
             <br>We are checking how we can use swipe movements in response inhibition tasks. Later on we might be able
             to use this for interesting psychological measurements.
@@ -172,11 +188,11 @@
 
     <div id="task_id" style="display:none;">
 
-        <div class="flick-frame-class" id="frame_id">
+        <div class="flick-frame-class" id="flick-frame">
             <div class="flick-stim-class" id="stimulus_id"></div>
-            <div class="flick-left-line" id="left_id"></div>
-            <div class="flick-right-line" id="right_id"></div>
-            <button class="flick-button-circle" id='button_id'></button>
+            <div class="flick-left-line" id="flick-left-line"></div>
+            <div class="flick-right-line" id="flick-right-line"></div>
+            <button class="flick-button-circle" id='flick-button'></button>
         </div>
 
 

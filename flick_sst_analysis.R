@@ -91,22 +91,22 @@ plot_epoch <-  function(rowx, movement_epoch, file_name) {
             x = "time (ms)"
         ) +
         scale_x_continuous(
-            limits = c(rowx$disp_start-10, rowx$disp_start+800),
+            limits = c(rowx$trialInfo.start-10, rowx$trialInfo.start+800),
             labels = function(x)
-                x - rowx$disp_start,
-            breaks = seq(rowx$disp_start, max(movement_epoch$time), by = 500)
+                x - rowx$trialInfo.start,
+            breaks = seq(rowx$trialInfo.start, max(movement_epoch$time), by = 500)
         )
     
-    if (!is.na(rowx$disp_stop)) {
+    if (!is.na(rowx$trialInfo.stopSignal)) {
         timeline_plot = timeline_plot +
             geom_vline(
-                xintercept = rowx$disp_stop,
+                xintercept = rowx$trialInfo.stopSignal,
                 linetype = "dotted",
                 color = "#cc0000"
             ) +
             geom_text(
                 aes(
-                    x = rowx$disp_stop,
+                    x = rowx$trialInfo.stopSignal,
                     label = "Stop",
                     y = -250 * 0.65
                 ),
@@ -286,14 +286,14 @@ for (file_name in enum(filenames)) {
         rowx = subject_data[i]
         # rowx = subject_data[7]
         
-        epoch_start = rowx$disp_start - epoch_minus #-5000
-        epoch_end = rowx$disp_start + epoch_plus #+5000
+        epoch_start = rowx$trialInfo.start - epoch_minus #-5000
+        epoch_end = rowx$trialInfo.start + epoch_plus #+5000
         touch_epoch = touch_data[(touch_data$time >= epoch_start &
                                       touch_data$time <= epoch_end)]
         
         if (do_plot) {
             if (nrow(touch_epoch) > 3) {
-                if (is.na(rowx$disp_stop)) {
+                if (is.na(rowx$trialInfo.stopSignal)) {
                     all_epochs_list[[length(all_epochs_list) + 1]] <- list(touch_epoch = touch_epoch, rowx = rowx)
                 }
                 if (do_plot_epoch) {

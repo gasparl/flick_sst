@@ -2,26 +2,24 @@
 /*jshint esversion: 6 */
 
 // define global variables
-let text_to_show, disp_start, disp_start_noRAF, disp_stop, faulty,
-    input_time, allstims, f_name, startButton, stimulusElem, trial_touch_data, cross_time;
+let text_to_show, faulty,
+    input_time, allstims, f_name, startButton, stimulusElem, cross_time;
 let start_div = "intro_id", // default: intro_id | instructions_id | task_id | end_id
     trialnum = 0,
     startclicked = false,
-    phase = "practice",
-    full_touch_data = [];
+    phase = "practice";
 const time_limit = 800;
 
+
 const misc = {
+    task: "flank", // sst or flank
     userid: "noid",
     demo: false // whether this is a demonstration
 };
 
 document.addEventListener("DOMContentLoaded", function() {
 
-    startButton = document.getElementById('button_id');
-    stimulusElem = document.getElementById('stimulus_id');
     userid_check();
-
 
     misc.os = jscd.os;
     misc.os_v = jscd.osVersion;
@@ -32,12 +30,6 @@ document.addEventListener("DOMContentLoaded", function() {
     misc.Resolution = MobileDevice.getResolution();
     misc.Model = MobileDevice.getModels().join(' or ');
     misc.date_time = neat_date();
-
-    // TODO
-    // if (!('ontouchmove' in window.document)) {
-    //     cancel();
-    //     return;
-    // }
 
     // startpage
     document.getElementById(start_div).style.display = 'block';
@@ -56,15 +48,98 @@ const cancel = function() {
 };
 
 
-function begin() {
+// get selected radio button value
+const get_radio = function(rad_name) {
+    const rad_val = document.querySelector('input[name=' + rad_name + ']:checked');
+    return (rad_val ? rad_val.value : "");
+};
+
+const consent = function() {
+    misc.consented = flick.roundTo2(performance.now());
+    misc.design = get_radio('design');
+
+    if (misc.design !== '1') {
+        flick.startSign = '↑';
+    }
+
     fullscreen_on();
     keep_state();
     DT.loopOn();
+    begin();
+};
 
-    let reps = 5;
-    if (phase == "main") {
-        reps = 15;
+const begin = function() {
+    allstims = stimFlanker();
+    allstims = shuffle(allstims);
+    document.getElementById('instructions_id').style.display = 'none';
+    document.getElementById('instructions2_id').style.display = 'none';
+    document.getElementById('task_id').style.display = 'block';
+};
+
+const stimFlanker = function() {
+    const config = {
+        practiceReps: 5,
+        mainReps: 15,
+        congruentTypes: ["→→→→→", "←←←←←"],
+        incongruentTypes: ["→→←→←", "←←→←←"],
+        neutralTypes: ["--→--", "--←--"]
+    };
+    const { practiceReps, mainReps, congruentTypes, incongruentTypes, neutralTypes } = config;
+
+    let reps = (phase === "main") ? mainReps : practiceReps;
+
+    // Generate congruent stimuli
+    for (let i = 0; i < reps; i++) {
+        congruentTypes.forEach((type) => {
+            allstims.push({
+                item: type,
+                condition: "congruent"
+            });
+        });
     }
+
+    // Generate incongruent stimuli
+    for (let i = 0; i < reps; i++) {
+        incongruentTypes.forEach((type) => {
+            allstims.push({
+                item: type,
+                condition: "incongruent"
+            });
+        });
+    }
+
+    // // Generate neutral stimuli
+    // for (let i = 0; i < reps; i++) {
+    //     neutralTypes.forEach((type) => {
+    //         allstims.push({
+    //             item: type,
+    //             condition: "neutral"
+    //         });
+    //     });
+    // }
+
+    // Handle extra logic for different phases
+    if (phase === "main") {
+        // Any extra stimuli/logic for the main phase
+    }
+    return allstims;
+};
+
+
+function stimSST() {
+    const config = {
+        practiceReps: 5,
+        mainReps: 15,
+        ssdValues: [100, 150, 200, 250, 300],
+        ssdReps: 2
+    };
+
+    let allstims = [];
+    const { practiceReps, mainReps, ssdValues, ssdReps } = config;
+
+    let reps = (phase === "main") ? mainReps : practiceReps;
+
+    // Add initial stimuli
     allstims = new Array(reps).fill({
         item: "→",
         ssd: 0
@@ -75,9 +150,11 @@ function begin() {
             ssd: 0
         });
     }
-    if (phase == "main") {
-        for (let i = 0; i < 2; i++) {
-            [100, 150, 200, 250, 300].forEach((ssd_it) => {
+
+    // For main phase, add additional stimuli based on SSD values
+    if (phase === "main") {
+        for (let i = 0; i < ssdReps; i++) {
+            ssdValues.forEach((ssd_it) => {
                 allstims.push({
                     item: "→",
                     ssd: ssd_it
@@ -89,211 +166,57 @@ function begin() {
             });
         }
     } else {
-        misc.consented =roundTo2(performance.now());
+        misc.consented = flick.roundTo2(performance.now());
     }
-    allstims = shuffle(allstims);
-    document.getElementById('instructions_id').style.display = 'none';
-    document.getElementById('instructions2_id').style.display = 'none';
-    document.getElementById('task_id').style.display = 'block';
 
-    faulty = { ended: 0, wrong_move: 0 };
-    trial_start();
+    return allstims;
 }
 
-const warn_touch = function() {
-    clearTimeout(go_TO);
-    startButton.innerHTML = '❗';
-    stimulusElem.innerHTML = 'Please touch the button to start the next trial.';
-    startButton.classList.add('flick-button-highlight');
-};
-
-const highlight_remove = function() {
-    startButton.innerHTML = '';
-    stimulusElem.innerHTML = '';
-    startButton.classList.remove('flick-button-highlight');
-};
-
-// Helper function to check if a point is inside a circle
-function isPointInCircle(point, rect) {
-    const dx = point.clientX - (rect.left + rect.width / 2);
-    const dy = point.clientY - (rect.top + rect.height / 2);
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    return distance <= rect.width / 2;
-}
-
-let warning_TO, go_TO;
-
-function trial_start() {
-    trial_touch_data = [];
-    getFramePos();
-    warning_TO = setTimeout(() => {
-        if (startButton.classList.contains("flick-button-highlight")) {
-            warn_touch();
-        }
-    }, 3000);
-    startButton.classList.add('flick-button-highlight');
-    startButton.ontouchmove = null;
-    startButton.ontouchend = null;
-    startButton.ontouchstart = function(ev) {
-        // Remember starting point
-        ev.preventDefault();
-        console.log('Touch started.');
-        const startTouch = ev.touches[0];
-        const buttonRect = startButton.getBoundingClientRect();
-        let touchStartedInside = isPointInCircle(startTouch, buttonRect);
-
-        // If touch started inside the button
-        if (touchStartedInside) {
-            console.log('Touch started inside the button.');
-            highlight_remove();
-            clearTimeout(warning_TO);
-
-            go_TO = setTimeout(() => stimulusElem.textContent = '↑', 300);
-
-            // Detect if the touch moves out of the circle or ends
-            startButton.ontouchmove = function(event) {
-                event.preventDefault();
-                const currentTouch = event.touches[0];
-                const buttonRect = startButton.getBoundingClientRect();
-
-                // Check if moved upwards and left from top boundary
-                if (stimulusElem.textContent === '↑' && currentTouch.clientY < buttonRect.top &&
-                    currentTouch.clientX >= buttonRect.left && currentTouch.clientX <= buttonRect.right) {
-                    console.log('Touch moved upwards and left the button.');
-                    cross_time = roundTo2(event.timeStamp);
-                    runtrial();
-                } else if (
-                    currentTouch.clientY > buttonRect.bottom ||
-                    currentTouch.clientX < buttonRect.left ||
-                    currentTouch.clientX > buttonRect.right
-                ) {
-                    console.log('Touch moved in the wrong direction.');
-                    warn_touch();
-                    faulty.wrong_move++;
-                    trial_start();
-                }
-            };
-
-            // Detect if the touch ends
-            startButton.ontouchend = function(event) {
-                event.preventDefault();
-                console.log('Touch ended.');
-                warn_touch();
-                faulty.ended++;
-                trial_start();
-            };
-        }
-    };
-}
-
-const runtrial = function() {
-    startButton.ontouchstart = null;
-    startButton.ontouchmove = null;
-    startButton.ontouchend = null;
+const trial_start = () => {
     trialnum++;
-    disp_start = "NA";
-    disp_stop = "NA";
-    response_end = {};
+    trialInfo = {};
     current_stim = allstims.shift(); // get next stimulus dictionary
     console.log(current_stim); // print info
+    flick.trialStart(callflick.onCrossing, current_stim.item === '←');
 
-    disp_start_noRAF = roundTo2(performance.now());
-    requestAnimationFrame(function(stamp) {
+
+    flick.trialPre(() => flick.onCrossing(misc.design),
+        misc.design === '1' ? { left: true, right: true } : { top: true });
+
+
+    trialInfo.start_noRAF = flick.roundTo2(performance.now());
+    requestAnimationFrame(stamp => {
         stimulusElem.textContent = current_stim.item;
-        disp_start = roundTo2(stamp); // the crucial (start) JS-timing
+        trialInfo.start = flick.roundTo2(stamp); // the crucial (start) JS-timing
         if (current_stim.ssd > 0) {
-            setTimeout(function() {
-                requestAnimationFrame(function(stamp2) {
+            setTimeout(() => {
+                requestAnimationFrame(stamp2 => {
                     stimulusElem.textContent = 'x ' + stimulusElem.textContent + ' x';
-                    document.getElementById("frame_id").style.backgroundColor = "red";
-                    disp_stop = stamp2;
+                    document.getElementById("flick-frame").style.backgroundColor = "red";
+                    trialInfo.stopSignal = stamp2;
                 });
 
             }, current_stim.ssd - 8);
         }
         if (phase !== "practice") {
-            setTimeout(function() {
+            setTimeout(() => {
                 store_trial();
             }, time_limit);
         }
     });
-    startButton.ontouchmove = (event) => get_coords(event, 1);
-    startButton.ontouchstart = (event) => get_coords(event, 0);
-    startButton.ontouchend = (event) => get_coords(event, 2);
-};
-
-let frameRectMiddle, leftLineRectRight, rightLineRectLeft, startButtonRectTop;
-
-const getFramePos = function() {
-    leftLineRectRight = document.getElementById('left_id').getBoundingClientRect().right;
-    rightLineRectLeft = document.getElementById('right_id').getBoundingClientRect().left;
-    startButtonRectTop = document.getElementById('button_id').getBoundingClientRect().top;
-
-    const frameRect = document.getElementById("frame_id").getBoundingClientRect();
-    frameRectMiddle = frameRect.left + (frameRect.width / 2);
 };
 
 
-const get_coords = function(event, type) {
-    event.preventDefault();
-
-    const currentTouch = event.changedTouches[0];
-
-    // store relative coordinates
-    if ((performance.now() - disp_start) < time_limit) {
-        // Calculate X coordinate relative to the vertical middle of the "frame_id" element
-        const relativeX = currentTouch.clientX - frameRectMiddle;
-
-        // Calculate Y coordinate relative to the horizontal top of the "button_id" element
-        const relativeY = startButtonRectTop - currentTouch.clientY;
-
-        trial_touch_data.push([event.timeStamp, relativeX, relativeY, type]);
+const callOnCrossing = () => {
+    if (phase === "practice") {
+        store_trial();
     }
-
-    // Detect if touch crosses the lines
-    if ((currentTouch.clientX <= leftLineRectRight && current_stim.item === '←') || (currentTouch.clientX >= rightLineRectLeft && current_stim.item === '→')) {
-        startButton.ontouchmove = null;
-        startButton.ontouchstart = null;
-        startButton.ontouchend = null;
-        stimulusElem.textContent = '';
-
-        const lastTouchData = trial_touch_data[trial_touch_data.length - 2];
-        const currentTouchData = trial_touch_data[trial_touch_data.length - 1];
-
-        if (lastTouchData && currentTouchData) {
-            const targetX = current_stim.item === '←' ? (leftLineRectRight - frameRectMiddle) : (rightLineRectLeft - frameRectMiddle);
-
-            response_end = calculateCrossingDetails(lastTouchData, currentTouchData, targetX);
-        }
-
-        if (phase === "practice") {
-            store_trial();
-        }
-        fullscreen_on();
-    }
+    fullscreen_on();
 };
-
-const calculateCrossingDetails = function(lastTouchData, currentTouchData, targetX) {
-    const [lastTouchTime, lastTouchX, lastTouchY] = lastTouchData;
-    const [currentTouchTime, currentTouchX, currentTouchY] = currentTouchData;
-
-    const proportion = (targetX - lastTouchX) / (currentTouchX - lastTouchX);
-
-    const interpolatedTime = lastTouchTime + proportion * (currentTouchTime - lastTouchTime);
-    const interpolatedX = targetX;
-    const interpolatedY = lastTouchY + proportion * (currentTouchY - lastTouchY);
-
-    return { time: interpolatedTime, x: interpolatedX, y: interpolatedY };
-};
-
 
 const randomdigit = function(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
-
-const roundTo2 = function(number) {
-    return Math.round(number * 100) / 100;
-}
 
 
 //*** storing data, etc. ***//
@@ -306,9 +229,9 @@ let full_data = [
     "direction",
     "ssd",
     "cross_time",
-    "disp_start",
-    "disp_start_noRAF",
-    "disp_stop",
+    "trialInfo.start",
+    "trialInfo.start_noRAF",
+    "trialInfo.stopSignal",
     "r_time",
     "r_x",
     "r_y",
@@ -318,9 +241,9 @@ let full_data = [
 ].join('\t') + '\n';
 
 function store_trial() {
-    full_touch_data.push(...trial_touch_data);
+    flick.fullData.push(...flick.trialData);
     stimulusElem.textContent = '';
-    document.getElementById("frame_id").style.backgroundColor = "";
+    document.getElementById("flick-frame").style.backgroundColor = "";
     full_data += [
         misc.date_time,
         phase,
@@ -328,19 +251,19 @@ function store_trial() {
         current_stim.item,
         current_stim.ssd,
         cross_time,
-        disp_start,
-        disp_start_noRAF,
-        disp_stop,
-        response_end.time,
-        response_end.x,
-        response_end.y,
-        faulty.ended,
-        faulty.wrong_move,
-        roundTo2(performance.now())
+        trialInfo.start,
+        trialInfo.start_noRAF,
+        trialInfo.stopSignal,
+        trialInfo.time,
+        trialInfo.x,
+        trialInfo.y,
+        flick.wrongEnd,
+        flick.wrongMove,
+        flick.roundTo2(performance.now())
     ].join('\t') + '\n';
     faulty = { ended: 0, wrong_move: 0 };
     if (allstims.length > 0) {
-        trial_start();
+        flick.trialPre();
     } else if (phase === "practice") {
         setTimeout(function() {
             phase = "main";
@@ -358,19 +281,14 @@ function ending() {
         document.getElementById('task_id').style.display = 'none';
         document.getElementById('end_id').style.display = 'block';
     }, 1000);
-    full_touch_data = full_touch_data.map(elem => {
-        elem[0] = roundTo2(elem[0]);
-        elem[1] = roundTo2(elem[1]);
-        elem[2] = roundTo2(elem[2]);
-        return (elem);
-    });
+    flick.fullData = flick.roundData(flick.fullData);
     f_name = 'flick_sst_pilot1_' + jscd.os + '_' +
         jscd.browser + '_' + misc.date_time + '_' + misc.userid + '.txt';
     document.getElementById("subj_id").innerText = misc.date_time + '_' + misc.userid;
 
     misc.full_duration = parseFloat(((performance.now() - misc.consented) / 1000 / 60).toFixed(1));
 
-    full_data += JSON.stringify(misc) + "\n" + JSON.stringify(full_touch_data);
+    full_data += JSON.stringify(misc) + "\n" + JSON.stringify(flick.fullData);
     upload();
     document.ontouchstart = () => {
         fullscreen_off();
