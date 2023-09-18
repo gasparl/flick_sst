@@ -6,10 +6,10 @@ library('data.table')
 library('ggpubr')
 library('viridis')
 
-setwd(path_neat('/../sst_results')) # set the result files' folder path as current working directory
+setwd(path_neat('/../flick_results')) # set the result files' folder path as current working directory
 
 
-filenames = list.files(pattern = "^flick_sst_pilot.*\\.txt$") # get all result file names
+filenames = list.files(pattern = "^flick_pilot.*\\.txt$") # get all result file names
 
 do_plot = TRUE
 do_plot_epoch = TRUE

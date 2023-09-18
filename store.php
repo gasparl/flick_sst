@@ -20,7 +20,7 @@ if (substr($request->fname_post ?? '', -4) !== ".txt") {
 $user_data = $request->results_post;
 
 # set path relative to server root; extend it with the file name
-$path = $_SERVER['DOCUMENT_ROOT'] . "/../data/sst_results/";
+$path = $_SERVER['DOCUMENT_ROOT'] . "/../data/flick_results/";
 $file_name = $path .  basename($request->fname_post);
 
 # save the file (if the file already exists, just append the new data)

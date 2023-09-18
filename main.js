@@ -43,7 +43,7 @@ const cancel = function() {
     if (!misc.userid.startsWith("GL")) {
         document.getElementById('pretest_id').style.display = 'none';
         document.getElementById('cancel_id').style.display = 'block';
-        f_name = 'flick_sst_x_pilot.txt';
+        f_name = 'flick_x_pilot.txt';
         full_data = jscd_text + '\t' + misc.date_time + '\n';
         upload();
     }
@@ -288,7 +288,7 @@ function ending() {
         document.getElementById('end_id').style.display = 'block';
     }, 1000);
     flick.fullData = flick.roundData(flick.fullData);
-    f_name = 'flick_sst_pilot1_' + jscd.os + '_' +
+    f_name = 'flick_pilot_' + misc.task + '_' + jscd.os + '_' +
         jscd.browser + '_' + misc.date_time + '_' + misc.userid + '.txt';
     document.getElementById("subj_id").innerText = misc.date_time + '_' + misc.userid;
 
@@ -335,7 +335,6 @@ function userid_check() {
         // (this variable is then used everywhere else to decide whether the app 
         // should act as in case of a demo version)
     }
-
 
     const page = params.get('p');
     if (document.getElementById(page) && document.getElementById(page).classList.contains('page')) {
