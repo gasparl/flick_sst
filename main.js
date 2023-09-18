@@ -69,10 +69,11 @@ const begin = function() {
     document.getElementById('instructions_id').style.display = 'none';
     document.getElementById('instructions2_id').style.display = 'none';
     document.getElementById('task_id').style.display = 'block';
+    next_trial();
 };
 
 const stim = {
-    flanker: () => {
+    flank: () => {
         const config = {
             practiceReps: 5,
             mainReps: 15,
@@ -80,6 +81,7 @@ const stim = {
             incongruentTypes: ["→→←→←", "←←→←←"],
             neutralTypes: ["--→--", "--←--"]
         };
+        let allstims = [];
         const { practiceReps, mainReps, congruentTypes, incongruentTypes, neutralTypes } = config;
 
         let reps = (phase === "main") ? mainReps : practiceReps;
@@ -178,22 +180,26 @@ const stim = {
     }
 };
 
-const trial_start = () => {
-    trialnum++;
-    trialInfo = {};
+const next_trial = function() {
     current_stim = allstims.shift(); // get next stimulus dictionary
     console.log(current_stim); // print info
+    
     flick.trialStart(
         correctSide === 'left',
         misc.design === '1' ? { left: true, right: true } : { top: true },
+        run_trial,
         callOnCrossing
     );
+}
 
+const run_trial = () => {
+    trialnum++;
+    trialInfo = {};
     trialInfo.start_noRAF = flick.roundTo2(performance.now());
     requestAnimationFrame(stamp => {
         stimulusElem.textContent = current_stim.item;
         trialInfo.start = flick.roundTo2(stamp); // the crucial (start) JS-timing
-        if (current_stim.ssd > 0) {
+        if (current_stim.ssd && current_stim.ssd > 0) {
             setTimeout(() => {
                 requestAnimationFrame(stamp2 => {
                     stimulusElem.textContent = 'x ' + stimulusElem.textContent + ' x';
@@ -238,9 +244,6 @@ let full_data = [
     "start",
     "start_noRAF",
     "stopSignal",
-    "r_time",
-    "r_x",
-    "r_y",
     "ended",
     "wrong_move",
     "time_now"
@@ -260,16 +263,13 @@ function store_trial() {
         trialInfo.start,
         trialInfo.start_noRAF,
         trialInfo.stopSignal,
-        trialInfo.time,
-        trialInfo.x,
-        trialInfo.y,
         flick.wrongEnd,
         flick.wrongMove,
         flick.roundTo2(performance.now())
     ].join('\t') + '\n';
     faulty = { ended: 0, wrong_move: 0 };
     if (allstims.length > 0) {
-        flick.trialPre();
+        next_trial();
     } else if (phase === "practice") {
         setTimeout(function() {
             phase = "main";

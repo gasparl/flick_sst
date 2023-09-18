@@ -53,7 +53,7 @@ const flick = {
 
     onCrossing: () => { },
 
-    trialStart: (isLeft, allowedSides = { top: true, bottom: true, left: true, right: true }, callOnCrossing) => {
+    trialStart: (isLeft, allowedSides = { top: true, bottom: true, left: true, right: true }, callOnStart, callOnCrossing) => {
         flick.onCrossing = callOnCrossing;
         flick.trialData = [];
         flick.getFramePos();
@@ -110,15 +110,12 @@ const flick = {
                         const isCrossRight = allowedSides.right && isOutsideRight;
 
                         if (isCrossTop || isCrossBottom || isCrossLeft || isCrossRight) {
-                            console.log('Touch moved and left the button.');
-
-                            startButton.ontouchstart = null;
-                            startButton.ontouchmove = null;
-                            startButton.ontouchend = null;
+                            callOnStart();
                             flick.getCoords(event, 8, isLeft);
                             startButton.ontouchstart = e => flick.getCoords(e, 0, isLeft);
                             startButton.ontouchmove = e => flick.getCoords(e, 1, isLeft);
                             startButton.ontouchend = e => flick.getCoords(e, 2, isLeft);
+                            // console.log('Touch moved and left the button.');
                             return;
                         }
                     }
