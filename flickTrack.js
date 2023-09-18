@@ -17,7 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
-
 const flick = {
     frameMiddle: undefined,
     leftLine: undefined,
@@ -30,6 +29,7 @@ const flick = {
     wrongEnd: 0,
     startSign: null,
     ongoing: false,
+    maxTrialDuration: Infinity,
 
     warnTouch: () => {
         clearTimeout(flick.goTO);
@@ -53,8 +53,8 @@ const flick = {
 
     onCrossing: () => { },
 
-    trialPre: (callOnCrossing, isLeft, allowedSides = { top: true, bottom: true, left: true, right: true }) => {
-        onCrossing = flick.onCrossing;
+    trialStart: (callOnCrossing, isLeft, allowedSides = { top: true, bottom: true, left: true, right: true }) => {
+        flick.onCrossing = callOnCrossing;
         flick.trialData = [];
         flick.getFramePos();
         flick.warningTO = setTimeout(() => {
@@ -90,7 +90,7 @@ const flick = {
                 startButton.ontouchmove = function(event) {
                     event.preventDefault();
 
-                    const { clientX, clientY, timeStamp } = event.touches[0];
+                    const { clientX, clientY } = event.touches[0];
                     const { top, bottom, left, right } = startButton.getBoundingClientRect();
 
                     const isOngoing = flick.ongoing;
@@ -108,8 +108,14 @@ const flick = {
 
                         if (isCrossTop || isCrossBottom || isCrossLeft || isCrossRight) {
                             console.log('Touch moved and left the button.');
-                            cross_time = flick.roundTo2(timeStamp);
-                            flick.trialStart(callOnCrossing, isLeft);
+
+                            startButton.ontouchstart = null;
+                            startButton.ontouchmove = null;
+                            startButton.ontouchend = null;
+                            flick.getCoords(event, 8, isLeft)
+                            startButton.ontouchstart = e => flick.getCoords(e, 0, isLeft);
+                            startButton.ontouchmove = e => flick.getCoords(e, 1, isLeft);
+                            startButton.ontouchend = e => flick.getCoords(e, 2, isLeft);
                             return;
                         }
                     }
@@ -118,7 +124,7 @@ const flick = {
                         console.log('Touch moved in the wrong direction.');
                         flick.warnTouch();
                         flick.wrongMove++;
-                        flick.trialPre();
+                        flick.trialStart();
                     }
                 };
 
@@ -128,28 +134,19 @@ const flick = {
                     console.log('Touch ended.');
                     flick.warnTouch();
                     flick.wrongEnd++;
-                    flick.trialPre();
+                    flick.trialStart();
                 };
             }
         };
     },
 
-    trialStart: (isLeft) => {
-        startButton.ontouchstart = null;
-        startButton.ontouchmove = null;
-        startButton.ontouchend = null;
-        startButton.ontouchstart = e => flick.getCoords(e, 0, isLeft);
-        startButton.ontouchmove = e => flick.getCoords(e, 1, isLeft);
-        startButton.ontouchend = e => flick.getCoords(e, 2, isLeft);
-    },
-
     getFramePos: () => {
-        flick.leftLineRectRight = document.getElementById('flick-left-line').getBoundingClientRect().right;
-        flick.rightLineRectLeft = document.getElementById('flick-right-line').getBoundingClientRect().left;
+        flick.leftLine = document.getElementById('flick-left-line').getBoundingClientRect().right;
+        flick.rightLine = document.getElementById('flick-right-line').getBoundingClientRect().left;
         startButtonRectTop = document.getElementById('flick-button').getBoundingClientRect().top;
 
         const frameRect = document.getElementById("flick-frame").getBoundingClientRect();
-        frameRectMiddle = frameRect.left + (frameRect.width / 2);
+        flick.frameMiddle = frameRect.left + (frameRect.width / 2);
     },
 
     getCoords: (event, type, isLeft) => {
@@ -158,9 +155,9 @@ const flick = {
         const currentTouch = event.changedTouches[0];
 
         // store relative coordinates
-        if ((performance.now() - trialInfo.start) < time_limit) {
+        if ((performance.now() - trialInfo.start) < flick.maxTrialDuration) {
             // Calculate X coordinate relative to the vertical middle of the "flick-frame" element
-            const relativeX = currentTouch.clientX - frameRectMiddle;
+            const relativeX = currentTouch.clientX - flick.frameMiddle;
 
             // Calculate Y coordinate relative to the horizontal top of the "flick-button" element
             const relativeY = startButtonRectTop - currentTouch.clientY;
@@ -169,7 +166,7 @@ const flick = {
         }
 
         // Detect if touch crosses the lines
-        if ((currentTouch.clientX <= flick.leftLineRectRight && current_stim.item === '←') || (currentTouch.clientX >= flick.rightLineRectLeft && current_stim.item === '→')) {
+        if ((currentTouch.clientX <= flick.leftLine && isLeft) || (currentTouch.clientX >= flick.rightLine && (!isLeft))) {
             startButton.ontouchmove = null;
             startButton.ontouchstart = null;
             startButton.ontouchend = null;
@@ -179,11 +176,23 @@ const flick = {
             const currentTouchData = flick.trialData[flick.trialData.length - 1];
 
             if (lastTouchData && currentTouchData) {
-                const targetX = isLeft ? (flick.leftLineRectRight - frameRectMiddle) : (flick.rightLineRectLeft - frameRectMiddle);
-                trialInfo = flick.calculateCrossingDetails(lastTouchData, currentTouchData, targetX);
+                const targetX = isLeft ? (flick.leftLine - flick.frameMiddle) : (flick.rightLine - flick.frameMiddle);
+                flick.calculateCrossingDetails(lastTouchData, currentTouchData, targetX);
             }
             flick.onCrossing();
         }
+    },
+
+    calculateCrossingDetails: function(lastTouchData, currentTouchData, targetX) {
+        const [lastTouchTime, lastTouchX, lastTouchY] = lastTouchData;
+        const [currentTouchTime, currentTouchX, currentTouchY] = currentTouchData;
+
+        const proportion = (targetX - lastTouchX) / (currentTouchX - lastTouchX);
+
+        const interpolatedTime = lastTouchTime + proportion * (currentTouchTime - lastTouchTime);
+        const interpolatedX = targetX;
+        const interpolatedY = lastTouchY + proportion * (currentTouchY - lastTouchY);
+        flick.trialData.splice(flick.trialData.length - 1, 0, [interpolatedTime, interpolatedX, interpolatedY, 9]);
     },
 
     roundTo2: function(number) {
@@ -197,18 +206,5 @@ const flick = {
             elem[2] = flick.roundTo2(elem[2]);
             return (elem);
         }));
-    },
-
-    calculateCrossingDetails: function(lastTouchData, currentTouchData, targetX) {
-        const [lastTouchTime, lastTouchX, lastTouchY] = lastTouchData;
-        const [currentTouchTime, currentTouchX, currentTouchY] = currentTouchData;
-
-        const proportion = (targetX - lastTouchX) / (currentTouchX - lastTouchX);
-
-        const interpolatedTime = lastTouchTime + proportion * (currentTouchTime - lastTouchTime);
-        const interpolatedX = targetX;
-        const interpolatedY = lastTouchY + proportion * (currentTouchY - lastTouchY);
-
-        return { time: interpolatedTime, x: interpolatedX, y: interpolatedY };
     }
 };

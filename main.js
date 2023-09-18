@@ -33,6 +33,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // startpage
     document.getElementById(start_div).style.display = 'block';
+
+    flick.maxTrialDuration = time_limit;
 });
 
 
@@ -45,13 +47,6 @@ const cancel = function() {
         full_data = jscd_text + '\t' + misc.date_time + '\n';
         upload();
     }
-};
-
-
-// get selected radio button value
-const get_radio = function(rad_name) {
-    const rad_val = document.querySelector('input[name=' + rad_name + ']:checked');
-    return (rad_val ? rad_val.value : "");
 };
 
 const consent = function() {
@@ -119,6 +114,12 @@ const stim = {
         //     });
         // }
 
+        allstims.map((stim) => {
+            const centralArrow = stim.item[Math.floor(stim.item.length / 2)];
+            // Determine the correct response based on the direction of the central arrow.
+            stim.correctSide = centralArrow === '→' ? "right" : "left";
+        });
+
         // Handle extra logic for different phases
         if (phase === "main") {
             // Any extra stimuli/logic for the main phase
@@ -167,9 +168,11 @@ const stim = {
                     });
                 });
             }
-        } else {
-            misc.consented = flick.roundTo2(performance.now());
         }
+
+        allstims.map((stim) => {
+            stim.correctSide = stim.item === "→" ? "right" : "left";
+        });
 
         return allstims;
     }
@@ -180,12 +183,11 @@ const trial_start = () => {
     trialInfo = {};
     current_stim = allstims.shift(); // get next stimulus dictionary
     console.log(current_stim); // print info
-    flick.trialStart(callflick.onCrossing, current_stim.item === '←');
-
-
-    flick.trialPre(() => flick.onCrossing(misc.design),
-        misc.design === '1' ? { left: true, right: true } : { top: true });
-
+    flick.trialStart(
+        callOnCrossing,
+        correctSide === 'left',
+        misc.design === '1' ? { left: true, right: true } : { top: true }
+    );
 
     trialInfo.start_noRAF = flick.roundTo2(performance.now());
     requestAnimationFrame(stamp => {
