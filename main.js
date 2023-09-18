@@ -69,108 +69,111 @@ const consent = function() {
 };
 
 const begin = function() {
-    allstims = stimFlanker();
+    allstims = stim[misc.task]();
     allstims = shuffle(allstims);
     document.getElementById('instructions_id').style.display = 'none';
     document.getElementById('instructions2_id').style.display = 'none';
     document.getElementById('task_id').style.display = 'block';
 };
 
-const stimFlanker = function() {
-    const config = {
-        practiceReps: 5,
-        mainReps: 15,
-        congruentTypes: ["→→→→→", "←←←←←"],
-        incongruentTypes: ["→→←→←", "←←→←←"],
-        neutralTypes: ["--→--", "--←--"]
-    };
-    const { practiceReps, mainReps, congruentTypes, incongruentTypes, neutralTypes } = config;
+const stim = {
+    flanker: () => {
+        const config = {
+            practiceReps: 5,
+            mainReps: 15,
+            congruentTypes: ["→→→→→", "←←←←←"],
+            incongruentTypes: ["→→←→←", "←←→←←"],
+            neutralTypes: ["--→--", "--←--"]
+        };
+        const { practiceReps, mainReps, congruentTypes, incongruentTypes, neutralTypes } = config;
 
-    let reps = (phase === "main") ? mainReps : practiceReps;
+        let reps = (phase === "main") ? mainReps : practiceReps;
 
-    // Generate congruent stimuli
-    for (let i = 0; i < reps; i++) {
-        congruentTypes.forEach((type) => {
-            allstims.push({
-                item: type,
-                condition: "congruent"
-            });
-        });
-    }
-
-    // Generate incongruent stimuli
-    for (let i = 0; i < reps; i++) {
-        incongruentTypes.forEach((type) => {
-            allstims.push({
-                item: type,
-                condition: "incongruent"
-            });
-        });
-    }
-
-    // // Generate neutral stimuli
-    // for (let i = 0; i < reps; i++) {
-    //     neutralTypes.forEach((type) => {
-    //         allstims.push({
-    //             item: type,
-    //             condition: "neutral"
-    //         });
-    //     });
-    // }
-
-    // Handle extra logic for different phases
-    if (phase === "main") {
-        // Any extra stimuli/logic for the main phase
-    }
-    return allstims;
-};
-
-
-function stimSST() {
-    const config = {
-        practiceReps: 5,
-        mainReps: 15,
-        ssdValues: [100, 150, 200, 250, 300],
-        ssdReps: 2
-    };
-
-    let allstims = [];
-    const { practiceReps, mainReps, ssdValues, ssdReps } = config;
-
-    let reps = (phase === "main") ? mainReps : practiceReps;
-
-    // Add initial stimuli
-    allstims = new Array(reps).fill({
-        item: "→",
-        ssd: 0
-    });
-    for (let i = 0; i < reps; i++) {
-        allstims.push({
-            item: "←",
-            ssd: 0
-        });
-    }
-
-    // For main phase, add additional stimuli based on SSD values
-    if (phase === "main") {
-        for (let i = 0; i < ssdReps; i++) {
-            ssdValues.forEach((ssd_it) => {
+        // Generate congruent stimuli
+        for (let i = 0; i < reps; i++) {
+            congruentTypes.forEach((type) => {
                 allstims.push({
-                    item: "→",
-                    ssd: ssd_it
-                });
-                allstims.push({
-                    item: "←",
-                    ssd: ssd_it
+                    item: type,
+                    condition: "congruent"
                 });
             });
         }
-    } else {
-        misc.consented = flick.roundTo2(performance.now());
-    }
 
-    return allstims;
-}
+        // Generate incongruent stimuli
+        for (let i = 0; i < reps; i++) {
+            incongruentTypes.forEach((type) => {
+                allstims.push({
+                    item: type,
+                    condition: "incongruent"
+                });
+            });
+        }
+
+        // // Generate neutral stimuli
+        // for (let i = 0; i < reps; i++) {
+        //     neutralTypes.forEach((type) => {
+        //         allstims.push({
+        //             item: type,
+        //             condition: "neutral"
+        //         });
+        //     });
+        // }
+
+        // Handle extra logic for different phases
+        if (phase === "main") {
+            // Any extra stimuli/logic for the main phase
+        }
+        return allstims;
+    },
+    sst: () => {
+        const config = {
+            practiceReps: 5,
+            mainReps: 15,
+            ssdValues: [100, 150, 200, 250, 300],
+            ssdReps: 2
+        };
+
+        let allstims = [];
+        const { practiceReps, mainReps, ssdValues, ssdReps } = config;
+
+        let reps = (phase === "main") ? mainReps : practiceReps;
+
+        // Add initial stimuli
+        allstims = new Array(reps).fill({
+            item: "→",
+            ssd: 0
+        });
+        for (let i = 0; i < reps; i++) {
+            allstims.push({
+                item: "←",
+                ssd: 0,
+                condition: "go"
+            });
+        }
+
+        // For main phase, add additional stimuli based on SSD values
+        if (phase === "main") {
+            for (let i = 0; i < ssdReps; i++) {
+                ssdValues.forEach((ssd_it) => {
+                    allstims.push({
+                        item: "→",
+                        ssd: ssd_it,
+                        condition: "stop"
+                    });
+                    allstims.push({
+                        item: "←",
+                        ssd: ssd_it,
+                        condition: "stop"
+                    });
+                });
+            }
+        } else {
+            misc.consented = flick.roundTo2(performance.now());
+        }
+
+        return allstims;
+    }
+};
 
 const trial_start = () => {
     trialnum++;
