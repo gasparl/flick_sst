@@ -59,8 +59,7 @@ const keep_state = function() {
     window.onbeforeunload = (event) => {
         unload_attemps.push(performance.now());
         misc.unloads = unload_attemps.join('_');
-        upload_interim();
-        const warn = tt.unload_warn;
+        const warn = 'You will lose your progress if you leave the page. Are you sure you want to leave?';
         if (!misc.demo) {
             event.preventDefault();
             event.returnValue = warn;

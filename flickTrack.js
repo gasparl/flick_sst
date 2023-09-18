@@ -124,7 +124,7 @@ const flick = {
                         console.log('Touch moved in the wrong direction.');
                         flick.warnTouch();
                         flick.wrongMove++;
-                        flick.trialStart();
+                        flick.trialStart(isLeft, allowedSides, callOnStart, callOnCrossing);
                     }
                 };
 
@@ -134,7 +134,7 @@ const flick = {
                     console.log('Touch ended.');
                     flick.warnTouch();
                     flick.wrongEnd++;
-                    flick.trialStart();
+                    flick.trialStart(isLeft, allowedSides, callOnStart, callOnCrossing);
                 };
             }
         };

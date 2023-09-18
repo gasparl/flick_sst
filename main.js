@@ -56,11 +56,13 @@ const consent = function() {
     if (misc.design !== '1') {
         flick.startSign = '↑';
     }
+    document.getElementById('intro_id').style.display = 'none';
+    window.scrollTo(0, 0);
 
     fullscreen_on();
     keep_state();
     DT.loopOn();
-    begin();
+    document.getElementById('instructions_id').style.display = 'block';
 };
 
 const begin = function() {
@@ -69,13 +71,14 @@ const begin = function() {
     document.getElementById('instructions_id').style.display = 'none';
     document.getElementById('instructions2_id').style.display = 'none';
     document.getElementById('task_id').style.display = 'block';
+    fullscreen_on();
     next_trial();
 };
 
 const stim = {
     flank: () => {
         const config = {
-            practiceReps: 5,
+            practiceReps: 3,
             mainReps: 15,
             congruentTypes: ["→→→→→", "←←←←←"],
             incongruentTypes: ["→→←→←", "←←→←←"],
@@ -118,6 +121,9 @@ const stim = {
 
         allstims.map((stim) => {
             const centralArrow = stim.item[Math.floor(stim.item.length / 2)];
+            if (phase === "practice") {
+                stim.item = centralArrow;
+            }
             // Determine the correct response based on the direction of the central arrow.
             stim.correctSide = centralArrow === '→' ? "right" : "left";
         });
@@ -130,7 +136,7 @@ const stim = {
     },
     sst: () => {
         const config = {
-            practiceReps: 5,
+            practiceReps: 3,
             mainReps: 15,
             ssdValues: [100, 150, 200, 250, 300],
             ssdReps: 2
@@ -183,14 +189,14 @@ const stim = {
 const next_trial = function() {
     current_stim = allstims.shift(); // get next stimulus dictionary
     console.log(current_stim); // print info
-    
+
     flick.trialStart(
-        correctSide === 'left',
+        current_stim.correctSide === 'left',
         misc.design === '1' ? { left: true, right: true } : { top: true },
         run_trial,
         callOnCrossing
     );
-}
+};
 
 const run_trial = () => {
     trialnum++;
