@@ -6,7 +6,7 @@ let startButton, stimulusElem;
 document.addEventListener("DOMContentLoaded", () => {
 
     startButton = document.getElementById('flick-button');
-    stimulusElem = document.getElementById('stimulus_id');
+    stimulusElem = document.getElementById('flick-stimulus');
 
     // TODO
     // if (!('ontouchmove' in window.document)) {
@@ -166,7 +166,12 @@ const flick = {
         }
 
         // Detect if touch crosses the lines
-        if ((currentTouch.clientX <= flick.leftLine && isLeft) || (currentTouch.clientX >= flick.rightLine && (!isLeft))) {
+        if ((currentTouch.clientX <= flick.leftLine && isLeft) || (currentTouch.clientX >= flick.rightLine && (!isLeft)
+
+            // for top corner designs
+            && (['0', '1'].includes(misc.design) || relativeY >= 50)
+
+        )) {
             startButton.ontouchmove = null;
             startButton.ontouchstart = null;
             startButton.ontouchend = null;

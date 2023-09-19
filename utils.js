@@ -75,6 +75,14 @@ const keep_state = function() {
     };
 };
 
+const orientationWarning = (activate) => {
+    if (activate) {
+        document.getElementById("rotate-warning").classList.add("rotate-device");
+    } else {
+        document.getElementById("rotate-warning").classList.remove("rotate-device");
+    }
+};
+
 const ro = function(num) {
     return ((Math.round(num * 100) / 100).toFixed(2));
 };

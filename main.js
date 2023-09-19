@@ -53,7 +53,7 @@ const consent = function() {
     misc.consented = flick.roundTo2(performance.now());
     misc.design = get_radio('design');
 
-    if (misc.design !== '1') {
+    if (['2', '3'].includes(misc.design)) {
         flick.startSign = '↑';
     }
     document.getElementById('intro_id').style.display = 'none';
@@ -62,14 +62,31 @@ const consent = function() {
     fullscreen_on();
     keep_state();
     DT.loopOn();
-    document.getElementById('instructions_id').style.display = 'block';
+
+    if (misc.design !== '3') {
+        orientationWarning(true);
+    } else {
+        document.querySelectorAll('.flick-frame-class').forEach((element) => {
+            element.classList.add('flick-frame-portrait');
+        });
+    }
+    if (['2', '3'].includes(misc.design)) {
+        document.querySelectorAll('.flick-line').forEach((element) => {
+            element.style.opacity = 0;
+        });
+        document.querySelectorAll('.flick-frame-class').forEach((element) => {
+            element.classList.add('add-corners');
+        });
+    }
+
+    document.getElementById('instructions1_' + misc.task + misc.design).style.display = 'block';
 };
 
 const begin = function() {
     allstims = stim[misc.task]();
     allstims = shuffle(allstims);
-    document.getElementById('instructions_id').style.display = 'none';
-    document.getElementById('instructions2_id').style.display = 'none';
+    document.getElementById('instructions1_' + misc.task + misc.design).style.display = 'none';
+    document.getElementById('instructions2_' + misc.task + misc.design).style.display = 'none';
     document.getElementById('task_id').style.display = 'block';
     fullscreen_on();
     next_trial();
@@ -280,7 +297,7 @@ function store_trial() {
         setTimeout(function() {
             phase = "main";
             document.getElementById('task_id').style.display = 'none';
-            document.getElementById('instructions2_id').style.display = 'block';
+            document.getElementById('instructions2_' + misc.task + misc.design).style.display = 'block';
         }, 500);
     } else {
         ending();

@@ -19,6 +19,11 @@
 <body>
 
 
+    <div id="rotate-warning" class="rotate-active">
+        <p>Please rotate your device to landscape mode to continue.</p>
+    </div>
+
+
     <div id="intro_id" class="longtext selectable" style="display:none;">
         <h1>Information</h1>
 
@@ -30,13 +35,19 @@
             Select version:
         </p>
 
-        <p>
+        <p style="line-height: 200%;">
             <label>
-                <input type="radio" name="design" value="1"> Horizontal
+                <input type="radio" name="design" value="0"> Horizontal single
             </label>
+            <br />
+            <label>
+                <input type="radio" name="design" value="1"> Horizontal dual
+            </label>
+            <br />
             <label>
                 <input type="radio" name="design" value="2"> T-landscape
             </label>
+            <br />
             <label>
                 <input type="radio" name="design" value="3"> T-portrait
             </label>
@@ -79,15 +90,14 @@
         </p>
         <br>
 
-        <button type="button" class="main_button"
-            onclick="consent()">
+        <button type="button" class="main_button" onclick="consent()">
             Consent & Continue
         </button>
         <br>
         <br>
     </div>
 
-    <div id="instructions_id" class="longtext" style="display:none;">
+    <div id="instructions1_flank_1" class="longtext" style="display:none;">
 
         <h1>Instructions</h1>
 
@@ -99,8 +109,8 @@
         </p>
 
         <div class="flick-frame-class flick-frame-demo">
-            <div class="flick-left-line"></div>
-            <div class="flick-right-line"></div>
+            <div class="flick-left-line flick-line"></div>
+            <div class="flick-right-line flick-line"></div>
             <button class="flick-button-circle"></button>
         </div>
 
@@ -114,8 +124,8 @@
 
         <div class="flick-frame-class flick-frame-demo">
             <div class="flick-stim-class">↑</div>
-            <div class="flick-left-line"></div>
-            <div class="flick-right-line"></div>
+            <div class="flick-left-line flick-line"></div>
+            <div class="flick-right-line flick-line"></div>
             <button class="flick-button-circle"></button>
         </div>
 
@@ -138,9 +148,10 @@
         <br>
     </div>
 
-    <div id="instructions2_id" class="longtext" style="display:none;">
+    <div id="instructions2_sst" class="longtext" style="display:none;">
         <p>
-            For the rest of the task, on some trials, very shortly after the left or right arrow appears, there will
+            For the rest of the task, on some trials, very shortly after the left or right arrow appears, the frame will
+            become red and there will
             appear an "X" sign on each side of the arrow, representing a "STOP" signal.
         </p>
 
@@ -148,10 +159,10 @@
             Like this:
         </p>
 
-        <div class="flick-frame-class flick-frame-demo">
+        <div class="flick-frame-class flick-frame-demo" style="background-color: red;">
             <div class="flick-stim-class">x ← x</div>
-            <div class="flick-left-line"></div>
-            <div class="flick-right-line"></div>
+            <div class="flick-left-line flick-line"></div>
+            <div class="flick-right-line flick-line"></div>
             <button class="flick-button-circle"></button>
         </div>
 
@@ -159,10 +170,10 @@
             Or like this:
         </p>
 
-        <div class="flick-frame-class flick-frame-demo">
+        <div class="flick-frame-class flick-frame-demo" style="background-color: red;">
             <div class="flick-stim-class">x → x</div>
-            <div class="flick-left-line"></div>
-            <div class="flick-right-line"></div>
+            <div class="flick-left-line flick-line"></div>
+            <div class="flick-right-line flick-line"></div>
             <button class="flick-button-circle"></button>
         </div>
 
@@ -186,19 +197,68 @@
         <br>
     </div>
 
+    <div id="instructions2_flank_2" class="longtext" style="display:none;">
+        <p>
+            For the entire rest of the task, the single arrow will be surrounded by additional "flanker" arrows on both
+            sides. There
+            are four possible variations: <b>→→→→→</b>, <b>←←←←←</b>, <b>→→←→←</b>, <b>←←→←←</b>.
+            <b>Pay close
+                attention to the central arrow only.</b>
+            Just like in the practice phase, the central arrow will change
+            direction right after you start moving your finger. Ignore the flanker arrows; they are not important for
+            your decision.
+        </p>
+
+        <p>
+            <b>
+                As quickly as you can, move your finger in the direction indicated by the central arrow: left for a left
+                arrow (←) and right for a right arrow (→). The task will move on regardless of whether you respond
+                correctly. Nonetheless, please remember: your finger should cross either the left or the right vertical
+                line (in green) to make a correct response.
+            </b>
+        </p>
+
+        <br>
+        <button type="button" class="main_button" onclick='begin();'>Start</button>
+        <br>
+        <br>
+    </div>
+    <div id="instructions2_flank_3" class="longtext" style="display:none;">
+        <p>
+            For the entire rest of the task, the single arrow will be surrounded by additional "flanker" arrows on both
+            sides. There
+            are four possible variations: <b>→→→→→</b>, <b>←←←←←</b>, <b>→→←→←</b>, <b>←←→←←</b>.
+            <b>Pay close
+                attention to the central arrow only.</b>
+            Just like in the practice phase, the central arrow will change
+            direction right after you start moving your finger. Ignore the flanker arrows; they are not important for
+            your decision.
+        </p>
+
+        <p>
+            <b>
+                As quickly as you can, move your finger in the direction indicated by the central arrow: left for a left
+                arrow (←) and right for a right arrow (→). The task will move on regardless of whether you respond
+                correctly. Nonetheless, please remember: your finger should cross either the left or the right vertical
+                line (in green) to make a correct response.
+            </b>
+        </p>
+
+        <br>
+        <button type="button" class="main_button" onclick='begin();'>Start</button>
+        <br>
+        <br>
+    </div>
 
     <div id="task_id" style="display:none;">
 
         <div class="flick-frame-class" id="flick-frame">
-            <div class="flick-stim-class" id="stimulus_id"></div>
-            <div class="flick-left-line" id="flick-left-line"></div>
-            <div class="flick-right-line" id="flick-right-line"></div>
+            <div class="flick-stim-class" id="flick-stimulus"></div>
+            <div class="flick-left-line flick-line" id="flick-left-line flick-line"></div>
+            <div class="flick-right-line flick-line" id="flick-right-line flick-line"></div>
             <button class="flick-button-circle" id='flick-button'></button>
         </div>
 
-
-        <p id="lighten" style="display:none;width:40%;margin:auto">Please end the response (decrease the pressure) to
-            continue.</p>
     </div>
 
     <div id="end_id" class="longtext" style="display:none;">

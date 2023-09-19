@@ -16,6 +16,35 @@ html {
                                     supported by Chrome, Edge, Opera and Firefox */
 }
 
+#rotate-warning {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    z-index: 9999;
+    text-align: center;
+    vertical-align: middle;
+}
+
+#rotate-warning p {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+}
+
+@media (orientation: portrait) {
+    .rotate-active {
+        display: block;
+    }
+}
+
+
 #flick-stop {
     font-size: 35px;
     top: 35%;
@@ -45,6 +74,35 @@ html {
     width: 500px;
     position: fixed;
     transform: translate(-50%, -50%);
+    overflow: hidden;
+}
+
+.flick-frame-portrait {
+    height: 500px;
+    width: 300px;
+}
+
+
+.add-corners:before, .add-corners:after {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
+
+.add-corners:before {
+    border-width: 0 50px 50px 0;
+    border-color: transparent #000000 #000000 transparent;
+    top: -3px; /* offset by the border-top width */
+    left: -3px; /* offset by the border-left width */
+}
+
+.add-corners:after {
+    border-width: 0 0 50px 50px;
+    border-color: transparent transparent #000000 #000000;
+    top: -3px; /* offset by the border-top width */
+    right: -3px; /* offset by the border-right width */
 }
 
 .flick-frame-demo {
@@ -77,8 +135,7 @@ html {
     box-shadow: 0 2px 0 0 #666666;
 }
 
-.flick-left-line,
-.flick-right-line {
+.flick-line {
     position: absolute;
     top: 0;
     bottom: 0;
