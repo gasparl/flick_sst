@@ -77,16 +77,19 @@ const consent = function() {
         document.querySelectorAll('.flick-frame-class').forEach((element) => {
             element.classList.add('add-corners');
         });
+        misc.designMain = 'b';
+    } else {
+        misc.designMain = 'a';
     }
 
-    document.getElementById('instructions1_' + misc.task + misc.design).style.display = 'block';
+    document.getElementById('instructions1_' + misc.task + '_' + misc.designMain).style.display = 'block';
 };
 
 const begin = function() {
     allstims = stim[misc.task]();
     allstims = shuffle(allstims);
-    document.getElementById('instructions1_' + misc.task + misc.design).style.display = 'none';
-    document.getElementById('instructions2_' + misc.task + misc.design).style.display = 'none';
+    document.getElementById('instructions1_' + misc.task + '_' + misc.designMain).style.display = 'none';
+    document.getElementById('instructions2_' + misc.task + '_' + misc.design).style.display = 'none';
     document.getElementById('task_id').style.display = 'block';
     fullscreen_on();
     next_trial();
@@ -297,7 +300,7 @@ function store_trial() {
         setTimeout(function() {
             phase = "main";
             document.getElementById('task_id').style.display = 'none';
-            document.getElementById('instructions2_' + misc.task + misc.design).style.display = 'block';
+            document.getElementById('instructions2_' + misc.task + '_' + misc.design).style.display = 'block';
         }, 500);
     } else {
         ending();

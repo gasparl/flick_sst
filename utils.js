@@ -77,9 +77,9 @@ const keep_state = function() {
 
 const orientationWarning = (activate) => {
     if (activate) {
-        document.getElementById("rotate-warning").classList.add("rotate-device");
+        document.getElementById("rotate-warning").classList.add("rotate-active");
     } else {
-        document.getElementById("rotate-warning").classList.remove("rotate-device");
+        document.getElementById("rotate-warning").classList.remove("rotate-active");
     }
 };
 

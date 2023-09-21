@@ -141,8 +141,8 @@ const flick = {
     },
 
     getFramePos: () => {
-        flick.leftLine = document.getElementById('flick-left-line').getBoundingClientRect().right;
-        flick.rightLine = document.getElementById('flick-right-line').getBoundingClientRect().left;
+        flick.leftLine = document.getElementById('flick-left-id').getBoundingClientRect().right;
+        flick.rightLine = document.getElementById('flick-right-id').getBoundingClientRect().left;
         startButtonRectTop = document.getElementById('flick-button').getBoundingClientRect().top;
 
         const frameRect = document.getElementById("flick-frame").getBoundingClientRect();
