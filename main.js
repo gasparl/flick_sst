@@ -249,7 +249,6 @@ const callOnCrossing = (crossInfo) => {
     if (phase === "practice") {
         store_trial();
     }
-    fullscreen_on();
 };
 
 const randomdigit = function(min, max) {

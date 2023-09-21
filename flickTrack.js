@@ -34,7 +34,7 @@ const flick = {
     warnTouch: () => {
         clearTimeout(flick.goTO);
         startButton.innerHTML = '❗';
-        stimulusElem.innerHTML = 'Please touch the button to start the next trial.';
+        stimulusElem.innerHTML = 'Please touch the button to start the trial.';
         startButton.classList.add('flick-button-highlight');
     },
 
@@ -76,7 +76,7 @@ const flick = {
 
             // If touch started inside the button
             if (touchStartedInside) {
-                console.log('Touch started inside the button.');
+                // console.log('Touch started inside the button.');
                 flick.highlightRemove();
                 clearTimeout(flick.warningTO);
                 if (flick.startSign !== null) {
@@ -96,14 +96,12 @@ const flick = {
                     const { clientX, clientY } = event.touches[0];
                     const { top, bottom, left, right } = startButton.getBoundingClientRect();
 
-                    const isOngoing = flick.ongoing;
-
                     const isOutsideTop = clientY < top;
                     const isOutsideBottom = clientY > bottom;
                     const isOutsideLeft = clientX < left;
                     const isOutsideRight = clientX > right;
 
-                    if (isOngoing) {
+                    if (flick.ongoing) {
                         const isCrossTop = allowedSides.top && isOutsideTop;
                         const isCrossBottom = allowedSides.bottom && isOutsideBottom;
                         const isCrossLeft = allowedSides.left && isOutsideLeft;
@@ -114,7 +112,7 @@ const flick = {
                             flick.getCoords(event, 8, isLeft);
                             startButton.ontouchstart = e => flick.getCoords(e, 0, isLeft);
                             startButton.ontouchmove = e => flick.getCoords(e, 1, isLeft);
-                            startButton.ontouchend = e => flick.getCoords(e, 2, isLeft);
+                            flick.ongoing = false;
                             // console.log('Touch moved and left the button.');
                             return;
                         }
@@ -143,10 +141,12 @@ const flick = {
     getFramePos: () => {
         flick.leftLine = document.getElementById('flick-left-id').getBoundingClientRect().right;
         flick.rightLine = document.getElementById('flick-right-id').getBoundingClientRect().left;
-        startButtonRectTop = document.getElementById('flick-button').getBoundingClientRect().top;
+        flick.startButtonRectTop = document.getElementById('flick-button').getBoundingClientRect().top;
 
+        document.getElementById('flick-frame').getBoundingClientRect().top;
         const frameRect = document.getElementById("flick-frame").getBoundingClientRect();
         flick.frameMiddle = frameRect.left + (frameRect.width / 2);
+        flick.frameTop = frameRect.top;
     },
 
     getCoords: (event, type, isLeft) => {
@@ -160,16 +160,18 @@ const flick = {
             const relativeX = currentTouch.clientX - flick.frameMiddle;
 
             // Calculate Y coordinate relative to the horizontal top of the "flick-button" element
-            const relativeY = startButtonRectTop - currentTouch.clientY;
+            const relativeY = flick.startButtonRectTop - currentTouch.clientY;
 
             flick.trialData.push([event.timeStamp, relativeX, relativeY, type]);
         }
 
         // Detect if touch crosses the lines
-        if ((currentTouch.clientX <= flick.leftLine && isLeft) || (currentTouch.clientX >= flick.rightLine && (!isLeft)
+        if ((currentTouch.clientX <= flick.leftLine && isLeft) || (currentTouch.clientX >= flick.rightLine && (!isLeft) &&
+
+            stimulusElem.textContent !== ''
 
             // for top corner designs
-            && (['0', '1'].includes(misc.design) || relativeY >= 50)
+            && (['0', '1'].includes(misc.design) || Math.abs(flick.frameTop - currentTouch.clientY) < 100)
 
         )) {
             startButton.ontouchmove = null;
@@ -186,7 +188,7 @@ const flick = {
                 // Insert the interpolated crossing data right before the last element
                 const interpolatedData = [crossingData.time, crossingData.x, crossingData.y, 9]; // type 9 for crossing data
                 flick.trialData.splice(flick.trialData.length - 1, 0, interpolatedData);
-            } else {
+            } else if (currentTouchData) {
                 crossingData = { time: currentTouchData[0], x: currentTouchData[1], y: currentTouchData[2] };
             }
             flick.onCrossing(crossingData);
