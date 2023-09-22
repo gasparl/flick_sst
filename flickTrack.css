@@ -66,25 +66,27 @@ html {
     font-size: 35px;
 }
 
+
 .flick-frame-class {
     border-top: 3px solid #000000;
     border-bottom: 3px solid #000000;
     border-right: none;
     border-left: none;
-    top: 50%;
     left: 50%;
-    height: 300px;
+    bottom: 50px;
+    height: 100px;
     width: 500px;
     position: fixed;
+    transform: translateX(-50%);
+}
+
+.add-corners {
+    bottom: 0;
+    top: 50%;
     transform: translate(-50%, -50%);
+    height: 300px;
     overflow: hidden;
 }
-
-.flick-frame-portrait {
-    height: 500px;
-    width: 300px;
-}
-
 
 .add-corners:before,
 .add-corners:after {
@@ -116,11 +118,17 @@ html {
     /* Moves it right by half the width */
 }
 
+.flick-frame-portrait {
+    height: 500px;
+    width: 300px;
+}
+
 .flick-frame-demo {
     position: relative;
     transform: none;
     left: auto;
     margin: 0 auto;
+    bottom: 0;
 }
 
 .flick-button-circle {
@@ -144,6 +152,31 @@ html {
 .flick-button-highlight {
     background-color: #888888;
     box-shadow: 0 2px 0 0 #666666;
+}
+
+.flick-button-class {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 22px;
+    box-shadow: inset 0 2px 0 0 #B0B0B0;
+    border: 1px solid #dcdcdc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #aaaaaa;
+    margin: 10px;
+}
+
+.flick-buttons-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
 }
 
 .flick-line {

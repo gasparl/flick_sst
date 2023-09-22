@@ -97,6 +97,62 @@
         <br>
     </div>
 
+    <div id="instructions1_flank_a" class="longtext" style="display:none;">
+
+        <h1>Instructions</h1>
+
+        <p>
+            Begin by placing your smartphone on a table or another solid surface.
+        </p>
+        <p>
+            During the task, you will see the following displayed on the screen.
+        </p>
+
+        <div class="flick-frame-class flick-frame-demo">
+            <div class="flick-left-line flick-line"></div>
+            <div class="flick-right-line flick-line"></div>
+
+            <div class="flick-buttons-wrapper">
+                <button class="flick-button-left flick-button-class"></button>
+                <button class="flick-button-right flick-button-class"></button>
+            </div>
+        </div>
+
+
+        <p>
+            At the beginning of each trial, you should place your left index finger on the left grey button and your
+            right index finger on the right grey button.
+
+            Soon after your finger touch is detected on both buttons, the fixation cross will be replaced by a left
+            arrow (←) or a right
+            arrow (→).
+
+            Respond quickly to the arrow:
+        <ul>
+            <li><b>Left arrow (←):</b> Swipe your left finger towards the left, crossing the left green line.</li>
+            <li><b>Right arrow (→):</b> Swipe your right finger towards the right, crossing the right green line.</li>
+        </ul>
+        </p>
+
+        <p>
+            Do not move your finger up or down: crossing the lower or upper borders of the dedicated frame invalidates
+            the trial.
+        </p>
+
+        <p>
+            Try to make correct decisions as fast as possible.
+        </p>
+
+        <p>
+            Start the practice with the <b>Start</b> button below.
+        </p>
+
+        <br>
+        <button type="button" class="main_button" onclick='begin();'>Start</button>
+        <br>
+        <br>
+    </div>
+
     <div id="instructions1_flank_b" class="longtext" style="display:none;">
 
         <h1>Instructions</h1>
@@ -197,6 +253,51 @@
         <br>
     </div>
 
+
+    <div id="instructions2_flank_0" class="longtext" style="display:none;">
+        <p>
+            For the entire rest of the task, the single arrow will be surrounded by additional "flanker" arrows on both
+            sides. There
+            are four possible variations: <b>→→→→→</b>, <b>←←←←←</b>, <b>→→←→←</b>, <b>←←→←←</b>.
+
+            <b>Pay close
+                attention to the central arrow only.</b>
+            Just like in the practice phase, you need to respond based on the direction indicated by the central arrow:
+            left swipe for a left
+            arrow (←) and right swipe for a right arrow (→). The task will move on regardless of
+            whether you respond
+            correctly. Nonetheless, please remember: your finger should cross either the left or the right vertical
+            line (in green) to make a correct response.
+            </b>
+        </p>
+
+        <br>
+        <button type="button" class="main_button" onclick='begin();'>Start</button>
+        <br>
+        <br>
+    </div>
+    <div id="instructions2_flank_1" class="longtext" style="display:none;">
+        <p>
+            For the entire rest of the task, the single arrow will be surrounded by additional "flanker" arrows on both
+            sides. There
+            are four possible variations: <b>→→→→→</b>, <b>←←←←←</b>, <b>→→←→←</b>, <b>←←→←←</b>.
+
+            <b>Pay close
+                attention to the central arrow only.</b>
+            Just like in the practice phase, you need to respond based on the direction indicated by the central arrow:
+            left swipe with left finger for a left
+            arrow (←) and right swipe with write finger for a right arrow (→). The task will move on regardless of
+            whether you respond
+            correctly. Nonetheless, please remember: your finger should cross either the left or the right vertical
+            line (in green) to make a correct response.
+            </b>
+        </p>
+
+        <br>
+        <button type="button" class="main_button" onclick='begin();'>Start</button>
+        <br>
+        <br>
+    </div>
     <div id="instructions2_flank_2" class="longtext" style="display:none;">
         <p>
             For the entire rest of the task, the single arrow will be surrounded by additional "flanker" arrows on both
@@ -250,10 +351,26 @@
         <br>
     </div>
 
-    <div id="task_id" style="display:none;">
+    <div id="task_a" style="display:none;">
+
+        <div class="flick-stim-class" id="flick-stimulus-a"></div>
+
+        <div class="flick-frame-class">
+            <div class="flick-left-line flick-line"></div>
+            <div class="flick-right-line flick-line"></div>
+
+            <div class="flick-buttons-wrapper">
+                <button class="flick-button-left flick-button-class" id="flick-button-left"></button>
+                <button class="flick-button-right flick-button-class" id="flick-button-right"></button>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="task_b" style="display:none;">
 
         <div class="flick-frame-class" id="flick-frame">
-            <div class="flick-stim-class" id="flick-stimulus"></div>
+            <div class="flick-stim-class" id="flick-stimulus-b"></div>
             <div class="flick-left-line flick-line" id="flick-left-id"></div>
             <div class="flick-right-line flick-line" id="flick-right-id"></div>
             <button class="flick-button-circle" id='flick-button'></button>

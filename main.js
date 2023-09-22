@@ -80,7 +80,13 @@ const consent = function() {
         misc.designMain = 'b';
     } else {
         misc.designMain = 'a';
+        if (misc.design === '0') {
+            document.querySelectorAll('.flick-button-right').forEach((element) => {
+                element.style.display = 'none';
+            });
+        }
     }
+    flick.stimulusElem = document.getElementById('flick-stimulus-' + misc.design);
 
     document.getElementById('instructions1_' + misc.task + '_' + misc.designMain).style.display = 'block';
 };
@@ -90,7 +96,7 @@ const begin = function() {
     allstims = shuffle(allstims);
     document.getElementById('instructions1_' + misc.task + '_' + misc.designMain).style.display = 'none';
     document.getElementById('instructions2_' + misc.task + '_' + misc.design).style.display = 'none';
-    document.getElementById('task_id').style.display = 'block';
+    document.getElementById('task_' + misc.designMain).style.display = 'block';
     fullscreen_on();
     next_trial();
 };
@@ -210,7 +216,7 @@ const next_trial = function() {
     current_stim = allstims.shift(); // get next stimulus dictionary
     console.log(current_stim); // print info
 
-    flick.trialStart(
+    flick.trialStartUp(
         current_stim.correctSide === 'left',
         misc.design === '1' ? { left: true, right: true } : { top: true },
         run_trial,
@@ -298,7 +304,7 @@ function store_trial() {
     } else if (phase === "practice") {
         setTimeout(function() {
             phase = "main";
-            document.getElementById('task_id').style.display = 'none';
+            document.getElementById('task_' + misc.designMain).style.display = 'none';
             document.getElementById('instructions2_' + misc.task + '_' + misc.design).style.display = 'block';
         }, 500);
     } else {
@@ -309,7 +315,7 @@ function store_trial() {
 // change rectangle color to blue to indicate experiment ending
 function ending() {
     setTimeout(() => {
-        document.getElementById('task_id').style.display = 'none';
+        document.getElementById('task_' + misc.designMain).style.display = 'none';
         document.getElementById('end_id').style.display = 'block';
     }, 1000);
     flick.fullData = flick.roundData(flick.fullData);

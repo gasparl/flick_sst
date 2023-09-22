@@ -1,12 +1,13 @@
 // @ts-nocheck
 /*jshint esversion: 6 */
 
-let startButton, stimulusElem;
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    startButton = document.getElementById('flick-button');
-    stimulusElem = document.getElementById('flick-stimulus');
+    flick.buttonSingle = document.getElementById('flick-button');
+    flick.buttonLeft = document.getElementById('flick-button-left');
+    flick.buttonRight = document.getElementById('flick-button-right');
+    // flick.stimulusElem = document.getElementById('flick-stimulus-' + misc.design);
 
     // TODO
     // if (!('ontouchmove' in window.document)) {
@@ -17,7 +18,12 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const flick = {
+    stimulusElem: undefined,
+    buttonSingle: undefined,
+    buttonLeft: undefined,
+    buttonRight: undefined,
     frameMiddle: undefined,
+    buttonSingleRectTop: undefined,
     leftLine: undefined,
     rightLine: undefined,
     warningTO: undefined,
@@ -30,19 +36,39 @@ const flick = {
     ongoing: false,
     maxTrialDuration: Infinity,
     startTime: undefined,
+    touches: {},
 
     warnTouch: () => {
         clearTimeout(flick.goTO);
-        startButton.innerHTML = '❗';
-        stimulusElem.innerHTML = 'Please touch the button to start the trial.';
-        startButton.classList.add('flick-button-highlight');
+        flick.buttonSingle.innerHTML = '❗';
+        flick.stimulusElem.innerHTML = 'Please touch the button to start the trial.';
+        flick.buttonSingle.classList.add('flick-button-highlight');
     },
 
     highlightRemove: () => {
-        startButton.innerHTML = '';
-        stimulusElem.innerHTML = '';
-        startButton.classList.remove('flick-button-highlight');
+        flick.buttonSingle.innerHTML = '';
+        flick.stimulusElem.innerHTML = '';
+        flick.buttonSingle.classList.remove('flick-button-highlight');
     },
+
+    warnTouch2: () => {
+        clearTimeout(flick.goTO);
+        flick.stimulusElem.innerHTML = 'Please touch both buttons to start the trial.';
+        [flick.buttonLeft, flick.buttonRight].forEach(button => {
+            button.innerHTML = '❗';
+            button.classList.add('flick-button-highlight');
+        });
+    },
+
+    highlightRemove2: (btn) => {
+        btn.textContent = '';
+        btn.classList.remove('flick-button-highlight');
+        if (!flick.buttonLeft.classList.contains("flick-button-highlight") &&
+            !flick.buttonRight.classList.contains("flick-button-highlight")) {
+            flick.stimulusElem.innerHTML = '';
+        }
+    },
+
 
     isPointInCircle: (point, rect) => {
         const dx = point.clientX - (rect.left + rect.width / 2);
@@ -53,25 +79,26 @@ const flick = {
 
     onCrossing: () => { },
 
-    trialStart: (isLeft, allowedSides = { top: true, bottom: true, left: true, right: true }, callOnStart, callOnCrossing) => {
+    trialStart: (callOnStart, callOnCrossing) => {
         flick.onCrossing = callOnCrossing;
         flick.trialData = [];
         flick.getFramePos();
         flick.warningTO = setTimeout(() => {
-            if (startButton.classList.contains("flick-button-highlight")) {
-                flick.warnTouch();
+            if (flick.buttonLeft.classList.contains("flick-button-highlight") ||
+                flick.buttonRight.classList.contains("flick-button-highlight")) {
+                flick.warnTouch2();
             }
         }, 3000);
-        startButton.classList.add('flick-button-highlight');
-        startButton.ontouchmove = null;
-        startButton.ontouchend = null;
+        flick.buttonSingle.classList.add('flick-button-highlight');
+        flick.buttonSingle.ontouchmove = null;
+        flick.buttonSingle.ontouchend = null;
         flick.ongoing = false;
-        startButton.ontouchstart = function(ev) {
+        flick.buttonSingle.ontouchstart = function(ev) {
             // Remember starting point
             ev.preventDefault();
             console.log('Touch started.');
             const startTouch = ev.touches[0];
-            const buttonRect = startButton.getBoundingClientRect();
+            const buttonRect = flick.buttonSingle.getBoundingClientRect();
             let touchStartedInside = flick.isPointInCircle(startTouch, buttonRect);
 
             // If touch started inside the button
@@ -82,7 +109,7 @@ const flick = {
                 if (flick.startSign !== null) {
                     flick.goTO = setTimeout(() => {
                         flick.startTime = performance.now();
-                        stimulusElem.textContent = flick.startSign;
+                        flick.stimulusElem.textContent = flick.startSign;
                         flick.ongoing = true;
                         // recatch position, just to be sure (e.g., if fullscreen was entered)
                         flick.getFramePos();
@@ -90,11 +117,11 @@ const flick = {
                 }
 
                 // Detect if the touch moves out of the circle or ends
-                startButton.ontouchmove = function(event) {
+                flick.buttonSingle.ontouchmove = function(event) {
                     event.preventDefault();
 
                     const { clientX, clientY } = event.touches[0];
-                    const { top, bottom, left, right } = startButton.getBoundingClientRect();
+                    const { top, bottom, left, right } = flick.buttonSingle.getBoundingClientRect();
 
                     const isOutsideTop = clientY < top;
                     const isOutsideBottom = clientY > bottom;
@@ -110,8 +137,8 @@ const flick = {
                         if (isCrossTop || isCrossBottom || isCrossLeft || isCrossRight) {
                             callOnStart();
                             flick.getCoords(event, 8, isLeft);
-                            startButton.ontouchstart = e => flick.getCoords(e, 0, isLeft);
-                            startButton.ontouchmove = e => flick.getCoords(e, 1, isLeft);
+                            flick.buttonSingle.ontouchstart = e => flick.getCoords(e, 0, isLeft);
+                            flick.buttonSingle.ontouchmove = e => flick.getCoords(e, 1, isLeft);
                             flick.ongoing = false;
                             // console.log('Touch moved and left the button.');
                             return;
@@ -122,17 +149,102 @@ const flick = {
                         console.log('Touch moved in the wrong direction.');
                         flick.warnTouch();
                         flick.wrongMove++;
-                        flick.trialStart(isLeft, allowedSides, callOnStart, callOnCrossing);
+                        flick.trialStartUp(isLeft, allowedSides, callOnStart, callOnCrossing);
                     }
                 };
 
                 // Detect if the touch ends
-                startButton.ontouchend = function(event) {
+                flick.buttonSingle.ontouchend = function(event) {
                     event.preventDefault();
                     console.log('Touch ended.');
                     flick.warnTouch();
                     flick.wrongEnd++;
-                    flick.trialStart(isLeft, allowedSides, callOnStart, callOnCrossing);
+                    flick.trialStartUp(isLeft, allowedSides, callOnStart, callOnCrossing);
+                };
+            }
+        };
+    },
+
+    trialStartUp: (isLeft, allowedSides = { top: true, bottom: true, left: true, right: true }, callOnStart, callOnCrossing) => {
+        flick.onCrossing = callOnCrossing;
+        flick.trialData = [];
+        flick.getFramePos();
+        flick.warningTO = setTimeout(() => {
+            if (flick.buttonSingle.classList.contains("flick-button-highlight")) {
+                flick.warnTouch();
+            }
+        }, 3000);
+        flick.buttonSingle.classList.add('flick-button-highlight');
+        flick.buttonSingle.ontouchmove = null;
+        flick.buttonSingle.ontouchend = null;
+        flick.ongoing = false;
+        flick.buttonSingle.ontouchstart = function(ev) {
+            // Remember starting point
+            ev.preventDefault();
+            console.log('Touch started.');
+            const startTouch = ev.touches[0];
+            const buttonRect = flick.buttonSingle.getBoundingClientRect();
+            let touchStartedInside = flick.isPointInCircle(startTouch, buttonRect);
+
+            // If touch started inside the button
+            if (touchStartedInside) {
+                // console.log('Touch started inside the button.');
+                flick.highlightRemove();
+                clearTimeout(flick.warningTO);
+                if (flick.startSign !== null) {
+                    flick.goTO = setTimeout(() => {
+                        flick.startTime = performance.now();
+                        flick.stimulusElem.textContent = flick.startSign;
+                        flick.ongoing = true;
+                        // recatch position, just to be sure (e.g., if fullscreen was entered)
+                        flick.getFramePos();
+                    }, 50);
+                }
+
+                // Detect if the touch moves out of the circle or ends
+                flick.buttonSingle.ontouchmove = function(event) {
+                    event.preventDefault();
+
+                    const { clientX, clientY } = event.touches[0];
+                    const { top, bottom, left, right } = flick.buttonSingle.getBoundingClientRect();
+
+                    const isOutsideTop = clientY < top;
+                    const isOutsideBottom = clientY > bottom;
+                    const isOutsideLeft = clientX < left;
+                    const isOutsideRight = clientX > right;
+
+                    if (flick.ongoing) {
+                        const isCrossTop = allowedSides.top && isOutsideTop;
+                        const isCrossBottom = allowedSides.bottom && isOutsideBottom;
+                        const isCrossLeft = allowedSides.left && isOutsideLeft;
+                        const isCrossRight = allowedSides.right && isOutsideRight;
+
+                        if (isCrossTop || isCrossBottom || isCrossLeft || isCrossRight) {
+                            callOnStart();
+                            flick.getCoords(event, 8, isLeft);
+                            flick.buttonSingle.ontouchstart = e => flick.getCoords(e, 0, isLeft);
+                            flick.buttonSingle.ontouchmove = e => flick.getCoords(e, 1, isLeft);
+                            flick.ongoing = false;
+                            // console.log('Touch moved and left the button.');
+                            return;
+                        }
+                    }
+
+                    if (isOutsideTop || isOutsideBottom || isOutsideLeft || isOutsideRight) {
+                        console.log('Touch moved in the wrong direction.');
+                        flick.warnTouch();
+                        flick.wrongMove++;
+                        flick.trialStartUp(isLeft, allowedSides, callOnStart, callOnCrossing);
+                    }
+                };
+
+                // Detect if the touch ends
+                flick.buttonSingle.ontouchend = function(event) {
+                    event.preventDefault();
+                    console.log('Touch ended.');
+                    flick.warnTouch();
+                    flick.wrongEnd++;
+                    flick.trialStartUp(isLeft, allowedSides, callOnStart, callOnCrossing);
                 };
             }
         };
@@ -141,7 +253,7 @@ const flick = {
     getFramePos: () => {
         flick.leftLine = document.getElementById('flick-left-id').getBoundingClientRect().right;
         flick.rightLine = document.getElementById('flick-right-id').getBoundingClientRect().left;
-        flick.startButtonRectTop = document.getElementById('flick-button').getBoundingClientRect().top;
+        flick.buttonSingleRectTop = document.getElementById('flick-button').getBoundingClientRect().top;
 
         document.getElementById('flick-frame').getBoundingClientRect().top;
         const frameRect = document.getElementById("flick-frame").getBoundingClientRect();
@@ -160,7 +272,7 @@ const flick = {
             const relativeX = currentTouch.clientX - flick.frameMiddle;
 
             // Calculate Y coordinate relative to the horizontal top of the "flick-button" element
-            const relativeY = flick.startButtonRectTop - currentTouch.clientY;
+            const relativeY = flick.buttonSingleRectTop - currentTouch.clientY;
 
             flick.trialData.push([event.timeStamp, relativeX, relativeY, type]);
         }
@@ -168,16 +280,16 @@ const flick = {
         // Detect if touch crosses the lines
         if ((currentTouch.clientX <= flick.leftLine && isLeft) || (currentTouch.clientX >= flick.rightLine && (!isLeft) &&
 
-            stimulusElem.textContent !== ''
+            flick.stimulusElem.textContent !== ''
 
             // for top corner designs
             && (['0', '1'].includes(misc.design) || Math.abs(flick.frameTop - currentTouch.clientY) < 100)
 
         )) {
-            startButton.ontouchmove = null;
-            startButton.ontouchstart = null;
-            startButton.ontouchend = null;
-            stimulusElem.textContent = '';
+            flick.buttonSingle.ontouchmove = null;
+            flick.buttonSingle.ontouchstart = null;
+            flick.buttonSingle.ontouchend = null;
+            flick.stimulusElem.textContent = '';
 
             const lastTouchData = flick.trialData[flick.trialData.length - 2];
             const currentTouchData = flick.trialData[flick.trialData.length - 1];
@@ -220,3 +332,5 @@ const flick = {
         }));
     }
 };
+
+Object.seal(flick);
