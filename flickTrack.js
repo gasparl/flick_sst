@@ -140,16 +140,14 @@ const flick = {
 
     startMove: (event) => {
         event.preventDefault();
-
-        const allTouches = Array.from(event.touches);
-        const getTouchByIdentifier = (side) => allTouches.find(touch => touch.identifier === touchId[side]);
-
-        const sides = ['left', 'right'];
-        for (let i = 0; i < sides.length; i++) {
-            const side = sides[i];
-            const currentTouch = getTouchByIdentifier(side);
-            if (currentTouch) {
-                const touchStayedIn = flick.isPointInCircle(currentTouch, flick[side + 'Button'].getBoundingClientRect());
+    
+        for (const touch of event.touches) {
+            // Check if the touch matches either left or right identifier
+            const side = (touch.identifier === touchId.left) ? 'left' :
+                         (touch.identifier === touchId.right) ? 'right' : null;
+    
+            if (side) {
+                const touchStayedIn = flick.isPointInCircle(touch, flick[side + 'Button'].getBoundingClientRect());
                 if (!touchStayedIn) {
                     console.log(`Touch moved out of ${side} button.`);
                     flick.warnTouch2();
@@ -162,6 +160,7 @@ const flick = {
             document.ontouchmove = null;
         }
     },
+    
 
 
 
