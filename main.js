@@ -12,7 +12,6 @@ const time_limit = 800;
 
 
 const misc = {
-    task: "flank", // sst or flank
     userid: "noid",
     demo: false // whether this is a demonstration
 };
@@ -51,11 +50,9 @@ const cancel = function() {
 
 const consent = function() {
     misc.consented = flick.roundTo2(performance.now());
-    misc.design = get_radio('design');
+    misc.design = get_radio('design'); // 1 or 2
+    misc.task = get_radio('task'); // sst or flank
 
-    if (['2', '3'].includes(misc.design)) {
-        flick.startSign = '↑';
-    }
     document.getElementById('intro_id').style.display = 'none';
     window.scrollTo(0, 0);
 
@@ -96,7 +93,7 @@ const begin = function() {
     allstims = shuffle(allstims);
     document.getElementById('instructions1_' + misc.task + '_' + misc.designMain).style.display = 'none';
     document.getElementById('instructions2_' + misc.task + '_' + misc.design).style.display = 'none';
-    document.getElementById('task_' + misc.designMain).style.display = 'block';
+    document.getElementById('task_id').style.display = 'block';
     fullscreen_on();
     next_trial();
 };
@@ -304,7 +301,7 @@ function store_trial() {
     } else if (phase === "practice") {
         setTimeout(function() {
             phase = "main";
-            document.getElementById('task_' + misc.designMain).style.display = 'none';
+            document.getElementById('task_id').style.display = 'none';
             document.getElementById('instructions2_' + misc.task + '_' + misc.design).style.display = 'block';
         }, 500);
     } else {
@@ -315,7 +312,7 @@ function store_trial() {
 // change rectangle color to blue to indicate experiment ending
 function ending() {
     setTimeout(() => {
-        document.getElementById('task_' + misc.designMain).style.display = 'none';
+        document.getElementById('task_id').style.display = 'none';
         document.getElementById('end_id').style.display = 'block';
     }, 1000);
     flick.fullData = flick.roundData(flick.fullData);

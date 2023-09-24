@@ -32,24 +32,34 @@
         </p>
 
         <p>
-            Select version:
+            Select design:
         </p>
 
         <p style="line-height: 200%;">
             <label>
-                <input type="radio" name="design" value="0"> Horizontal single
+                <input type="radio" name="design" value="0">
+                Single button
             </label>
             <br />
             <label>
-                <input type="radio" name="design" value="1"> Horizontal dual
+                <input type="radio" name="design" value="1">
+                Dual button
+            </label>
+        </p>
+
+        <p>
+            Select task:
+        </p>
+
+        <p style="line-height: 200%;">
+            <label>
+                <input type="radio" name="task" value="0">
+                Flanker
             </label>
             <br />
             <label>
-                <input type="radio" name="design" value="2"> Y-landscape
-            </label>
-            <br />
-            <label>
-                <input type="radio" name="design" value="3"> Y-portrait
+                <input type="radio" name="task" value="1">
+                SST
             </label>
         </p>
 
@@ -123,7 +133,8 @@
             At the beginning of each trial, you should place your left index finger on the left grey button and your
             right index finger on the right grey button.
 
-            Soon after your finger touch is detected on both buttons, there will appear, at the top center of the screen, a left
+            Soon after your finger touch is detected on both buttons, there will appear, at the top center of the
+            screen, a left
             arrow (←) or a right
             arrow (→).
 
@@ -351,9 +362,9 @@
         <br>
     </div>
 
-    <div id="task_a" style="display:none;">
+    <div id="task_id" style="display:none;">
 
-        <div class="flick-stim-class" id="flick-stimulus-a"></div>
+        <div class="flick-stim-class" id="flick-stimulus"></div>
 
         <div class="flick-frame-class">
             <div class="flick-left-line flick-line"></div>
@@ -362,18 +373,8 @@
             <div class="flick-buttons-wrapper">
                 <button class="flick-button-left flick-button-class" id="flick-button-left"></button>
                 <button class="flick-button-right flick-button-class" id="flick-button-right"></button>
+                <button class="flick-button-right flick-button-class" id="flick-button-single"></button>
             </div>
-        </div>
-
-    </div>
-
-    <div id="task_b" style="display:none;">
-
-        <div class="flick-frame-class" id="flick-frame">
-            <div class="flick-stim-class" id="flick-stimulus-b"></div>
-            <div class="flick-left-line flick-line" id="flick-left-id"></div>
-            <div class="flick-right-line flick-line" id="flick-right-id"></div>
-            <button class="flick-button-circle" id='flick-button'></button>
         </div>
 
     </div>
