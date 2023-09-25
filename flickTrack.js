@@ -18,11 +18,13 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const flick = {
+    ready: false,
     stimulusElem: undefined,
     singleButton: undefined,
     leftButton: undefined,
     rightButton: undefined,
     xCenter: undefined,
+    yCenter: undefined,
     leftLine: undefined,
     rightLine: undefined,
     warningTO: undefined,
@@ -64,7 +66,7 @@ const flick = {
         btn.classList.remove('flick-button-highlight');
         if (!flick.leftButton.classList.contains("flick-button-highlight") &&
             !flick.rightButton.classList.contains("flick-button-highlight")) {
-            flick.stimulusElem.innerHTML = '';
+            flick.ready = true;
         }
     },
 
