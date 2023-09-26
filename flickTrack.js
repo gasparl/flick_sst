@@ -39,26 +39,32 @@ const flick = {
     startTime: undefined,
     touches: {},
 
-    warnTouch: () => {
-        clearTimeout(flick.goTO);
-        flick.singleButton.innerHTML = '❗';
-        flick.stimulusElem.innerHTML = 'Please touch the button to start the trial.';
-        flick.singleButton.classList.add('flick-button-highlight');
+    clearListeners: () => {
+        const elements = [document, flick.singleButton, flick.leftButton, flick.rightButton];
+        const events = ['ontouchmove', 'ontouchend', 'ontouchstart', 'ontouchcancel'];
+        elements.forEach(element => {
+            events.forEach(event => {
+                element[event] = null;
+            });
+        });
     },
 
-    highlightRemove: () => {
+    warnTouch: () => {
+        clearTimeout(flick.goTO);
+        Object.keys(flick.trialData).forEach(key => {
+            if (!touchId[key]) {
+                flick[key + 'Button'].classList.add('flick-button-highlight');
+                flick[key + 'Button'].innerHTML = '❗';
+            }
+        });
+        flick.stimulusElem.innerHTML = 'Please touch the button to start the trial.';
+    },
+
+    highlightRemove1: () => {
         flick.singleButton.innerHTML = '';
         flick.stimulusElem.innerHTML = '';
         flick.singleButton.classList.remove('flick-button-highlight');
-    },
-
-    warnTouch2: () => {
-        clearTimeout(flick.goTO);
-        flick.stimulusElem.innerHTML = 'Please touch both buttons to start the trial.';
-        [flick.leftButton, flick.rightButton].forEach(button => {
-            button.innerHTML = '❗';
-            button.classList.add('flick-button-highlight');
-        });
+        flick.ready = true;
     },
 
     highlightRemove2: (btn) => {
@@ -80,20 +86,23 @@ const flick = {
     onCrossing: () => { },
 
     trialStart: (callOnStart, callOnCrossing) => {
+        flick.clearListeners();
         flick.onCrossing = callOnCrossing;
-        flick.trialData = { left: [], right: [] };
+        flick.ready = false;
+        flick.trialData = misc.design === 1 ? { single: [] } : { left: [], right: [] };
         flick.getFramePos();
         flick.warningTO = setTimeout(() => {
             if (flick.leftButton.classList.contains("flick-button-highlight") ||
-                flick.rightButton.classList.contains("flick-button-highlight")) {
-                flick.warnTouch2();
+                flick.rightButton.classList.contains("flick-button-highlight") ||
+                (misc.design === '1' && flick.singleButton.classList.contains("flick-button-highlight"))) {
+                flick.warnTouch();
             }
         }, 3000);
         flick.stimulusElem.textContent = '+';
 
         const btnList = misc.design === '1'
             ? [{ side: 'left', btn: flick.leftButton }, { side: 'right', btn: flick.rightButton }]
-            : [{ side: 'left', btn: flick.leftButton }];
+            : [{ side: 'single', btn: flick.singleButton }];
         btnList.forEach(respButtonObj => {
             const respButton = respButtonObj.btn;
             const respSide = respButtonObj.side;
@@ -114,25 +123,23 @@ const flick = {
                     flick.highlightRemove2(respButton);
                     touchId[respSide] = e.changedTouches[0].identifier;
                     flick.getCoords(e, 7, isLeft, respSide);
-                    if (!flick.leftButton.classList.contains("flick-button-highlight") &&
-                        !flick.rightButton.classList.contains("flick-button-highlight")) {
+                    if (flick.ready) {
                         clearTimeout(flick.warningTO);
                         flick.goTO = setTimeout(() => {
                             flick.startTime = performance.now();
-                            document.ontouchmove = null;
+                            flick.clearListeners();
                             flick.getFramePos();
-                            flick.getCoords(ev, 8, isLeft);
-                            respButton.ontouchstart = null;
-                            respButton.ontouchmove = null;
-                            respButton.ontouchend = null;
                             document.ontouchmove = e => flick.getCoords(e, 1, isLeft);
+                            document.ontouchend = e => flick.getCoords(e, 8, isLeft);
+                            document.ontouchcancel = e => flick.getCoords(e, 9, isLeft);
                             callOnStart();
-                        }, 100);
+                        }, 500);
                     }
 
-                    document.ontouchmove = function(event) {
-                        startMove(event);
-                    };
+                    document.ontouchmove = startMove;
+                    document.ontouchend = startEnd;
+                    document.ontouchcancel = startEnd;
+
                 }
             };
         });
@@ -143,9 +150,28 @@ const flick = {
 
         for (const touch of event.touches) {
             // Check if the touch matches either left or right identifier
-            const side = (touch.identifier === touchId.left) ? 'left' :
-                (touch.identifier === touchId.right) ? 'right' : null;
+            const side = touchId[touch.identifier] || null;
+            if (side) {
+                const touchStayedIn = flick.isPointInCircle(touch, flick[side + 'Button'].getBoundingClientRect());
+                if (!touchStayedIn) {
+                    console.log(`Touch moved out of ${side} button.`);
+                    flick.warnTouch2();
+                    touchId[side] = null;
+                } else {
+                    flick.trialData[side].push([event.timeStamp, relativeX, relativeY, 0]);
+                }
+            }
+        }
+        if (Object.values(touchId).every(value => value === null)) {
+            document.ontouchmove = null;
+        }
+    },
 
+    startEnd: (event) => {
+        event.preventDefault();
+
+        for (const touch of event.changedTouches) {
+            const side = touchId[touch.identifier] || null;
             if (side) {
                 const touchStayedIn = flick.isPointInCircle(touch, flick[side + 'Button'].getBoundingClientRect());
                 if (!touchStayedIn) {
@@ -155,10 +181,10 @@ const flick = {
                 }
             }
         }
-
-        if (!touchId.left && !touchId.right) {
+        if (Object.values(touchId).every(value => value === null)) {
             document.ontouchmove = null;
         }
+
     },
 
     getFramePos: () => {
@@ -171,47 +197,42 @@ const flick = {
         flick.yCenter = (frameRect.top + frameRect.bottom) / 2;
     },
 
-    getCoords: (event, type, isLeft, side = null) => {
+    getCoords: (event, type, isLeft) => {
         event.preventDefault();
+        for (const currentTouch of event.changedTouches) {
+            const side = touchId[touch.identifier] || null;
 
-        const currentTouch = event.changedTouches[0];
-
-        // store relative coordinates
-        if ((performance.now() - flick.startTime) < (flick.maxTrialDuration + 100)) {
-            // Calculate X coordinate relative to the vertical middle of the "flick-frame" element
-            const relativeX = currentTouch.clientX - flick.xCenter;
-
-            // Calculate Y coordinate relative to the horizontal top of the "flick-button" element
-            const relativeY = flick.yCenter - currentTouch.clientY;
-            if (side !== null) {
+            // store relative coordinates
+            if (side && (performance.now() - flick.startTime) < (flick.maxTrialDuration + 100)) {
+                // Calculate X coordinate relative to the vertical middle of the "flick-frame" element
+                const relativeX = currentTouch.clientX - flick.xCenter;
+                // Calculate Y coordinate relative to the horizontal top of the "flick-button" element
+                const relativeY = flick.yCenter - currentTouch.clientY;
                 flick.trialData[side].push([event.timeStamp, relativeX, relativeY, type]);
-            } else {
-                flick.trialData.push([event.timeStamp, relativeX, relativeY, type]);
             }
-        }
 
-        // Detect if touch crosses the lines
-        if ((currentTouch.clientX <= flick.leftLine && isLeft) || (currentTouch.clientX >= flick.rightLine && (!isLeft) &&
-            flick.stimulusElem.textContent !== ''
-        )) {
-            flick.singleButton.ontouchmove = null;
-            flick.singleButton.ontouchstart = null;
-            flick.singleButton.ontouchend = null;
-            flick.stimulusElem.textContent = '';
+            // Detect if touch crosses the lines
+            if ((currentTouch.clientX <= flick.leftLine && isLeft) ||
+                (currentTouch.clientX >= flick.rightLine && (!isLeft))) {
+                flick.clearListeners();
+                flick.stimulusElem.textContent = '';
+                if (side) {
+                    const lastTouchData = flick.trialData[flick.trialData.length - 2];
+                    const currentTouchData = flick.trialData[flick.trialData.length - 1];
 
-            const lastTouchData = flick.trialData[flick.trialData.length - 2];
-            const currentTouchData = flick.trialData[flick.trialData.length - 1];
-
-            if (lastTouchData && currentTouchData) {
-                const targetX = isLeft ? (flick.leftLine - flick.xCenter) : (flick.rightLine - flick.xCenter);
-                crossingData = flick.calculateCrossingDetails(lastTouchData, currentTouchData, targetX);
-                // Insert the interpolated crossing data right before the last element
-                const interpolatedData = [crossingData.time, crossingData.x, crossingData.y, 9]; // type 9 for crossing data
-                flick.trialData.splice(flick.trialData.length - 1, 0, interpolatedData);
-            } else if (currentTouchData) {
-                crossingData = { time: currentTouchData[0], x: currentTouchData[1], y: currentTouchData[2] };
+                    if (lastTouchData && currentTouchData) {
+                        const targetX = isLeft ? (flick.leftLine - flick.xCenter) : (flick.rightLine - flick.xCenter);
+                        crossingData = flick.calculateCrossingDetails(lastTouchData, currentTouchData, targetX);
+                        // Insert the interpolated crossing data right before the last element
+                        const interpolatedData = [crossingData.time, crossingData.x, crossingData.y, 9]; // type 9 for crossing data
+                        flick.trialData.splice(flick.trialData.length - 1, 0, interpolatedData);
+                    } else if (currentTouchData) {
+                        crossingData = { time: currentTouchData[0], x: currentTouchData[1], y: currentTouchData[2] };
+                    }
+                }
+                flick.onCrossing(crossingData);
             }
-            flick.onCrossing(crossingData);
+
         }
     },
 
