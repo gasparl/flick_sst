@@ -36,12 +36,12 @@
 
         <p style="line-height: 200%;">
             <label>
-                <input type="radio" name="design" value="0">
+                <input type="radio" name="design" value="1">
                 Single button
             </label>
             <br />
             <label>
-                <input type="radio" name="design" value="1">
+                <input type="radio" name="design" value="2">
                 Dual button
             </label>
         </p>
@@ -52,12 +52,12 @@
 
         <p style="line-height: 200%;">
             <label>
-                <input type="radio" name="task" value="0">
+                <input type="radio" name="task" value="flank">
                 Flanker
             </label>
             <br />
             <label>
-                <input type="radio" name="task" value="1">
+                <input type="radio" name="task" value="sst">
                 SST
             </label>
         </p>
@@ -106,7 +106,7 @@
         <br>
     </div>
 
-    <div id="instructions1_flank_a" class="longtext" style="display:none;">
+    <div id="instructions1" class="longtext" style="display:none;">
 
         <h1>Instructions</h1>
 
@@ -124,13 +124,17 @@
             <div class="flick-buttons-wrapper">
                 <button class="flick-button-left flick-button-class"></button>
                 <button class="flick-button-right flick-button-class"></button>
+                <button class="flick-button-single flick-button-class"></button>
             </div>
         </div>
 
 
         <p>
-            At the beginning of each trial, you should place your left index finger on the left grey button and your
-            right index finger on the right grey button.
+            At the beginning of each trial, you should place your <span class='finger_1'>your
+                preferred index finger on the circle at the bottom</span><span class='finger_2'
+                style="display: none;">left index finger on the
+                left grey button and your
+                right index finger on the right grey button</span>.
 
             Soon after your finger touch is detected on both buttons, there will appear, at the top center of the
             screen, a left
@@ -163,62 +167,10 @@
         <br>
     </div>
 
-    <div id="instructions1_flank_b" class="longtext" style="display:none;">
-
-        <h1>Instructions</h1>
-
-        <p>
-            Please place your smartphone on a table (or other solid surface).
-        </p>
-        <p>
-            During the task, you will see the following displayed on the screen.
-        </p>
-
-        <div class="flick-frame-class flick-frame-demo">
-            <div class="flick-left-line flick-line"></div>
-            <div class="flick-right-line flick-line"></div>
-            <button class="flick-button-circle"></button>
-        </div>
-
-
-        <p>
-            At the beginning of each trial, you should place your preferred index finger on the circle at the bottom.
-            (If you would like, you may use your middle finger instead of index finger.)
-            Almost immediately after your finger touch is detected, you will get a "↑" message, as below. This means you
-            should start moving your finger up, toward the top of the screen.
-        </p>
-
-        <div class="flick-frame-class flick-frame-demo">
-            <div class="flick-stim-class">↑</div>
-            <div class="flick-left-line flick-line"></div>
-            <div class="flick-right-line flick-line"></div>
-            <button class="flick-button-circle"></button>
-        </div>
-
-        <p>
-
-            Right after you start moving your finger, the arrow will change into a left arrow (←) or a right arrow (→)
-            displayed on the
-            screen. As soon as you see this, move your finger, as fast as you can, to the corresponding direction (to
-            the left for left arrow, to the right for right arrow). Your finger should cross either the left or the
-            right vertical line (in green).
-        </p>
-
-        <p>
-            Start the practice with the <b>Start</b> button below.
-        </p>
-
-        <br>
-        <button type="button" class="main_button" onclick='begin();'>Start</button>
-        <br>
-        <br>
-    </div>
 
     <div id="instructions2_sst" class="longtext" style="display:none;">
         <p>
-            For the rest of the task, on some trials, very shortly after the left or right arrow appears, the frame will
-            become red and there will
-            appear an "X" sign on each side of the arrow, representing a "STOP" signal.
+            For the rest of the task, on some trials, very shortly after the left or right arrow appears, a "STOP!" message will appear below the arrow.
         </p>
 
         <p>
@@ -226,7 +178,8 @@
         </p>
 
         <div class="flick-frame-class flick-frame-demo" style="background-color: red;">
-            <div class="flick-stim-class">x ← x</div>
+            <div class="flick-stim-class">←</div>
+            <div class="stop-class">STOP!</div>
             <div class="flick-left-line flick-line"></div>
             <div class="flick-right-line flick-line"></div>
             <button class="flick-button-circle"></button>
@@ -237,16 +190,17 @@
         </p>
 
         <div class="flick-frame-class flick-frame-demo" style="background-color: red;">
-            <div class="flick-stim-class">x → x</div>
+            <div class="flick-stim-class">→</div>
+            <div class="stop-class">STOP!</div>
             <div class="flick-left-line flick-line"></div>
             <div class="flick-right-line flick-line"></div>
             <button class="flick-button-circle"></button>
         </div>
 
         <p>
-            When this happens, please try your best to stop your response and <i>not press</i> any button on that trial.
+            When this happens, please try your best to stop your response on that trial.
             It is normal and expected if you will not always be able to successfully stop when a stop signal
-            appears. However, if you continue to try very hard to stop when a stop signal appears, you
+            appears. However, if you continue to try hard, you
             should be able to stop sometimes.
         </p>
 
@@ -264,7 +218,7 @@
     </div>
 
 
-    <div id="instructions2_flank_1" class="longtext" style="display:none;">
+    <div id="instructions2_flank" class="longtext" style="display:none;">
         <p>
             For the entire rest of the task, the single arrow will be surrounded by additional "flanker" arrows on both
             sides. There
@@ -273,30 +227,9 @@
             <b>Pay close
                 attention to the central arrow only.</b>
             Just like in the practice phase, you need to respond based on the direction indicated by the central arrow:
-            left swipe for a left
-            arrow (←) and right swipe for a right arrow (→). The task will move on regardless of
-            whether you respond
-            correctly. Nonetheless, please remember: your finger should cross either the left or the right vertical
-            line (in green) to make a correct response.
-            </b>
-        </p>
-
-        <br>
-        <button type="button" class="main_button" onclick='begin();'>Start</button>
-        <br>
-        <br>
-    </div>
-    <div id="instructions2_flank_2" class="longtext" style="display:none;">
-        <p>
-            For the entire rest of the task, the single arrow will be surrounded by additional "flanker" arrows on both
-            sides. There
-            are four possible variations: <b>→→→→→</b>, <b>←←←←←</b>, <b>→→←→←</b>, <b>←←→←←</b>.
-
-            <b>Pay close
-                attention to the central arrow only.</b>
-            Just like in the practice phase, you need to respond based on the direction indicated by the central arrow:
-            left swipe with left finger for a left
-            arrow (←) and right swipe with write finger for a right arrow (→). The task will move on regardless of
+            left swipe <span class='finger_2' style="display: none;">with left finger</span> for a left
+            arrow (←) and right swipe <span class='finger_2' style="display: none;">with write finger</span> for a right
+            arrow (→)</span>. The task will move on regardless of
             whether you respond
             correctly. Nonetheless, please remember: your finger should cross either the left or the right vertical
             line (in green) to make a correct response.
@@ -312,6 +245,7 @@
     <div id="task_id" style="display:none;">
 
         <div class="flick-stim-class" id="flick-stimulus"></div>
+        <div class="stop-class" id="stop-signal">STOP!</div>
 
         <div class="flick-frame-class">
             <div class="flick-left-line flick-line"></div>

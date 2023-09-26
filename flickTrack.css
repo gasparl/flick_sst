@@ -47,14 +47,14 @@ html {
     }
 }
 
-
-#flick-stop {
-    font-size: 35px;
-    top: 35%;
+.stop-class {
+    font-family: Arial;
+    position: absolute;
+    top: 50px;
     left: 50%;
-    text-align: center;
-    position: fixed;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
+    font-size: 35px;
+    display: none;
 }
 
 .flick-stim-class {

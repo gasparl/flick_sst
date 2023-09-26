@@ -62,20 +62,34 @@ const consent = function() {
     orientationWarning(true);
 
     if (misc.design === '1') {
-        document.getElementById('flick-button-left').style.display = 'none';
-        document.getElementById('flick-button-right').style.display = 'none';
+        for (let button of document.querySelectorAll('.flick-button-left, .flick-button-right')) {
+            button.style.display = 'none';
+        }
     } else {
-        document.getElementById('flick-button-single').style.display = 'none';
+        for (let button of document.querySelectorAll('.flick-button-single')) {
+            button.style.display = 'none';
+        }
+        for (let text of document.querySelectorAll('.finger_2')) {
+            text.style.display = 'block';
+        }
+        for (let text of document.querySelectorAll('.finger_1')) {
+            text.style.display = 'none';
+        }
+    }
+    if (misc.task === 'sst') {
+        for (let stim of document.querySelectorAll('.stop-class')) {
+            stim.style.display = 'block';
+        }
     }
 
-    document.getElementById('instructions1_' + misc.task + '_' + misc.design).style.display = 'block';
+    document.getElementById('instructions1').style.display = 'block';
 };
 
 const begin = function() {
     allstims = stim[misc.task]();
     allstims = shuffle(allstims);
-    document.getElementById('instructions1_' + misc.task + '_' + misc.design).style.display = 'none';
-    document.getElementById('instructions2_' + misc.task + '_' + misc.design).style.display = 'none';
+    document.getElementById('instructions1').style.display = 'none';
+    document.getElementById('instructions2_' + misc.task).style.display = 'none';
     document.getElementById('task_id').style.display = 'block';
     fullscreen_on();
     next_trial();
@@ -285,7 +299,7 @@ function store_trial() {
         setTimeout(function() {
             phase = "main";
             document.getElementById('task_id').style.display = 'none';
-            document.getElementById('instructions2_' + misc.task + '_' + misc.design).style.display = 'block';
+            document.getElementById('instructions2_' + misc.task).style.display = 'block';
         }, 500);
     } else {
         ending();
