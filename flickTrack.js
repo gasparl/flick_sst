@@ -67,6 +67,7 @@ const flick = {
     },
 
     highlightRemove2: (btn) => {
+        flick.stimulusElem.textContent = 'REMOVE' + performance.now();
         btn.textContent = '';
         document.getElementById('flick-warning').style.display = 'none';
         btn.classList.remove('flick-button-highlight');
@@ -113,7 +114,7 @@ const flick = {
                     ev.preventDefault();
                 }
                 console.log('Touch started.');
-                const startTouch = ev.touches[0];
+                const startTouch = ev.targetTouches[0];
                 const buttonRect = respButton.getBoundingClientRect();
                 const touchStartedInside = flick.isPointInCircle(startTouch, buttonRect);
                 // If touch started inside the button
@@ -152,7 +153,7 @@ const flick = {
         if (event.cancelable) {
             event.preventDefault();
         }
-        for (const touch of event.touches) {
+        for (const touch of event.changedTouches) {
             // Check if the touch matches either left or right identifier
             const side = Object.entries(flick.touchId).find(([, id]) => id === touch.identifier)?.[0] || null;
             if (side) {
