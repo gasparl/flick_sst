@@ -49,8 +49,8 @@ const cancel = function() {
 
 const consent = function() {
     misc.consented = flick.roundTo2(performance.now());
-    misc.design = get_radio('design'); // 1 or 2
-    misc.task = get_radio('task'); // sst or flank
+    misc.design = get_radio('design') || '2'; // 1 or 2
+    misc.task = get_radio('task') || 'sst'; // sst or flank
     flick.isSingle = misc.design === '1';
 
     document.getElementById('intro_id').style.display = 'none';

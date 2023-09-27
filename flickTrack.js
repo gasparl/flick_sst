@@ -89,9 +89,10 @@ const flick = {
     isTouchInButton: (touches) => {
         for (const respSide in flick.touchId) {
             const touch = Array.from(touches || []).find(t => t.identifier === flick.touchId[respSide]);
-            flick.stimulusElem.textContent = 'resp side' + respSide + ' ' + flick.touchId[respSide] + ' ' + touches;
             if (touch && flick.isPointInCircle(touch, flick[respSide + 'Button'].getBoundingClientRect())) {
                 flick.highlightRemove2(flick[respSide + 'Button']);
+            } else {
+
             }
         }
     },
@@ -106,7 +107,7 @@ const flick = {
             if (!flick.ready) {
                 flick.warnTouch();
             }
-        }, 3000);
+        }, 5000);
         flick.stimulusElem.textContent = '+';
 
         const btnList = flick.isSingle ? [{ side: 'single', btn: flick.singleButton }] :
@@ -115,56 +116,59 @@ const flick = {
             const respButton = respButtonObj.btn;
             const respSide = respButtonObj.side;
             respButton.classList.add('flick-button-highlight');
-            respButton.ontouchend = e => flick.isTouchInButton(e.touches);
-            respButton.ontouchmove = e => flick.isTouchInButton(e.touches);
-
-            respButton.ontouchstart = function(ev) {
-                if (ev.cancelable) {
-                    ev.preventDefault();
-                }
-                console.log('Touch started.');
-
-                flick.isTouchInButton(ev.touches);
-
-                const startTouch = ev.targetTouches[0];
-                const buttonRect = respButton.getBoundingClientRect();
-                const touchStartedInside = flick.isPointInCircle(startTouch, buttonRect);
-                // If touch started inside the button
-                if (touchStartedInside) {
-                    // console.log('Touch started inside the button.');
-                    if (flick.isSingle) {
-                        flick.highlightRemove1();
-                    } else {
-                        flick.highlightRemove2(respButton);
-                    }
-                    flick.touchId[respSide] = ev.changedTouches[0].identifier;
-                    Object.keys(flick.sideId).forEach(key => {
-                        if (flick.sideId[key] === respSide) {
-                            delete flick.sideId[key];
-                        }
-                    });
-                    flick.sideId[ev.changedTouches[0].identifier] = respSide;
-                    flick.getCoords(ev, 7, isLeft, respSide);
-                    if (flick.ready) {
-                        clearTimeout(flick.warningTO);
-                        flick.goTO = setTimeout(() => {
-                            flick.startTime = performance.now();
-                            flick.clearListeners();
-                            flick.getFramePos();
-                            document.ontouchmove = e => flick.getCoords(e, 1, isLeft);
-                            document.ontouchend = e => flick.getCoords(e, 8, isLeft);
-                            document.ontouchcancel = e => flick.getCoords(e, 9, isLeft);
-                            callOnStart();
-                        }, 500);
-                    }
-
-                    document.ontouchmove = flick.startMove;
-                    document.ontouchend = flick.startEnd;
-                    document.ontouchcancel = flick.startEnd;
-
-                }
-            };
+            respButton.ontouchend = null;
+            respButton.ontouchmove = e => flick.buttonStarts(e, respButton, respSide, isLeft, callOnStart);
+            respButton.ontouchstart = e => flick.buttonStarts(e, respButton, respSide, isLeft, callOnStart);
         });
+    },
+
+    buttonStarts: (ev, respButton, respSide, isLeft, callOnStart) => {
+        if (ev.cancelable) {
+            ev.preventDefault();
+        }
+        clearTimeout(flick.goTO);
+        console.log('Touch started.');
+
+        flick.isTouchInButton(ev.touches);
+
+        const startTouch = ev.targetTouches[0];
+        const buttonRect = respButton.getBoundingClientRect();
+        const touchStartedInside = flick.isPointInCircle(startTouch, buttonRect);
+        // If touch started inside the button
+        if (touchStartedInside) {
+            // console.log('Touch started inside the button.');
+            if (flick.isSingle) {
+                flick.highlightRemove1();
+            } else {
+                flick.highlightRemove2(respButton);
+            }
+            flick.touchId[respSide] = ev.changedTouches[0].identifier;
+            Object.keys(flick.sideId).forEach(key => {
+                if (flick.sideId[key] === respSide) {
+                    delete flick.sideId[key];
+                }
+            });
+            flick.sideId[ev.changedTouches[0].identifier] = respSide;
+            flick.getCoords(ev, 7, isLeft, respSide);
+            if (flick.ready) {
+                clearTimeout(flick.warningTO);
+                flick.goTO = setTimeout(() => {
+                    flick.startTime = performance.now();
+                    flick.ready = false;
+                    flick.clearListeners();
+                    flick.getFramePos();
+                    document.ontouchmove = e => flick.getCoords(e, 1, isLeft);
+                    document.ontouchend = e => flick.getCoords(e, 8, isLeft);
+                    document.ontouchcancel = e => flick.getCoords(e, 9, isLeft);
+                    callOnStart();
+                }, 500);
+            }
+
+            document.ontouchmove = flick.startMove;
+            document.ontouchend = flick.startEnd;
+            document.ontouchcancel = flick.startEnd;
+
+        }
     },
 
     startMove: (event) => {
