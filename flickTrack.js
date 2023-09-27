@@ -31,9 +31,7 @@ const flick = {
     goTO: undefined,
     trialData: undefined,
     fullData: { single: [], left: [], right: [] },
-    startSign: null,
-    ongoing: false,
-    maxTrialDuration: Infinity,
+    maxTrialDuration: 5000,
     startTime: undefined,
     touchId: {},
     isSingle: false,
@@ -163,6 +161,8 @@ const flick = {
                     flick.warnTouch();
                     flick.touchId[side] = null;
                 } else {
+                    const relativeX = touch.clientX - flick.xCenter;
+                    const relativeY = flick.yCenter - touch.clientY;
                     flick.trialData[side].push([event.timeStamp, relativeX, relativeY, 0]);
                 }
             }
@@ -196,7 +196,6 @@ const flick = {
         flick.leftLine = document.getElementById('flick-left-line').getBoundingClientRect().right;
         flick.rightLine = document.getElementById('flick-right-line').getBoundingClientRect().left;
 
-        document.getElementById('flick-frame').getBoundingClientRect().top;
         const frameRect = document.getElementById("flick-frame").getBoundingClientRect();
         flick.xCenter = frameRect.left + (frameRect.width / 2);
         flick.yCenter = (frameRect.top + frameRect.bottom) / 2;
@@ -223,15 +222,15 @@ const flick = {
                 flick.stimulusElem.textContent = '';
                 let crossingData = {};
                 if (side) {
-                    const lastTouchData = flick.trialData[flick.trialData.length - 2];
-                    const currentTouchData = flick.trialData[flick.trialData.length - 1];
+                    const lastTouchData = flick.trialData[side][flick.trialData[side].length - 2];
+                    const currentTouchData = flick.trialData[side][flick.trialData[side].length - 1];
 
                     if (lastTouchData && currentTouchData) {
                         const targetX = isLeft ? (flick.leftLine - flick.xCenter) : (flick.rightLine - flick.xCenter);
                         crossingData = flick.calculateCrossingDetails(lastTouchData, currentTouchData, targetX);
                         // Insert the interpolated crossing data right before the last element
                         const interpolatedData = [crossingData.time, crossingData.x, crossingData.y, 9]; // type 9 for crossing data
-                        flick.trialData.splice(flick.trialData.length - 1, 0, interpolatedData);
+                        flick.trialData[side].splice(flick.trialData[side].length - 1, 0, interpolatedData);
                     } else if (currentTouchData) {
                         crossingData = { time: currentTouchData[0], x: currentTouchData[1], y: currentTouchData[2] };
                     }
