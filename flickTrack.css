@@ -50,7 +50,7 @@ html {
 .stop-class {
     font-family: Arial;
     position: absolute;
-    top: 80px;
+    top: 45px;
     left: 50%;
     transform: translateX(-50%);
     font-size: 35px;
@@ -70,7 +70,7 @@ html {
 .flick-stim-class {
     font-family: Arial;
     position: absolute;
-    top: 30px;
+    top: 5px;
     left: 50%;
     transform: translateX(-50%);
     font-size: 35px;
@@ -83,7 +83,7 @@ html {
     border-right: none;
     border-left: none;
     left: 50%;
-    bottom: 30px;
+    bottom: 20px;
     height: 100px;
     width: 500px;
     position: fixed;
@@ -116,11 +116,6 @@ html {
     background-color: #aaaaaa;
 }
 
-.flick-button-highlight {
-    background-color: #888888;
-    box-shadow: 0 2px 0 0 #666666;
-}
-
 .flick-button-class {
     position: relative;
     width: 50px;
@@ -144,6 +139,11 @@ html {
     transform: translate(-50%, -50%);
     display: flex;
     justify-content: center;
+}
+
+.flick-button-highlight {
+    background-color: #888888;
+    box-shadow: 0 2px 0 0 #666666;
 }
 
 .flick-line {

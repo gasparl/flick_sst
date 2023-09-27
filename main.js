@@ -61,22 +61,22 @@ const consent = function() {
     orientationWarning(true);
 
     if (misc.design === '1') {
-        for (let button of document.querySelectorAll('.flick-button-left, .flick-button-right')) {
+        for (const button of document.querySelectorAll('.flick-button-left, .flick-button-right')) {
             button.style.display = 'none';
         }
     } else {
-        for (let button of document.querySelectorAll('.flick-button-single')) {
+        for (const button of document.querySelectorAll('.flick-button-single')) {
             button.style.display = 'none';
         }
-        for (let text of document.querySelectorAll('.finger_2')) {
+        for (const text of document.querySelectorAll('.finger_2')) {
             text.style.display = 'block';
         }
-        for (let text of document.querySelectorAll('.finger_1')) {
+        for (const text of document.querySelectorAll('.finger_1')) {
             text.style.display = 'none';
         }
     }
     if (misc.task === 'sst') {
-        for (let stim of document.querySelectorAll('.stop-class')) {
+        for (const stim of document.querySelectorAll('.stop-class')) {
             stim.style.display = 'block';
         }
     }
@@ -221,7 +221,7 @@ const run_trial = () => {
     trialInfo = {};
     trialInfo.start_noRAF = flick.roundTo2(performance.now());
     requestAnimationFrame(stamp => {
-        stimulusElem.textContent = current_stim.item;
+        flick.stimulusElem.textContent = current_stim.item;
         trialInfo.start = flick.roundTo2(stamp); // the crucial (start) JS-timing
         if (current_stim.ssd && current_stim.ssd > 0) {
             setTimeout(() => {
@@ -271,8 +271,10 @@ let full_data = [
 ].join('\t') + '\n';
 
 function store_trial() {
-    flick.fullData.push(...flick.trialData);
-    stimulusElem.textContent = '';
+    for (const key of Object.keys(flick.trialData)) {
+        flick.fullData[key].push(flick.trialData[key]);
+    }
+    flick.stimulusElem.textContent = '';
     document.getElementById("stop-signal").style.display = "none";
     full_data += [
         misc.date_time,

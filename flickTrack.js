@@ -30,7 +30,7 @@ const flick = {
     warningTO: undefined,
     goTO: undefined,
     trialData: undefined,
-    fullData: [],
+    fullData: { single: [], left: [], right: [] },
     startSign: null,
     ongoing: false,
     maxTrialDuration: Infinity,
@@ -51,17 +51,18 @@ const flick = {
     warnTouch: () => {
         clearTimeout(flick.goTO);
         Object.keys(flick.trialData).forEach(key => {
-            if (!flick.touchId[key]) {
+            if (flick.touchId[key]) {
                 flick[key + 'Button'].classList.add('flick-button-highlight');
                 flick[key + 'Button'].innerHTML = '❗';
             }
         });
         document.getElementById('flick-warning').style.display = 'block';
+        flick.stimulusElem.innerHTML = '';
     },
 
     highlightRemove1: () => {
         flick.singleButton.innerHTML = '';
-        flick.stimulusElem.innerHTML = '';
+        flick.stimulusElem.innerHTML = '+';
         document.getElementById('flick-warning').style.display = 'none';
         flick.singleButton.classList.remove('flick-button-highlight');
         flick.ready = true;
@@ -74,6 +75,7 @@ const flick = {
         if (!flick.leftButton.classList.contains("flick-button-highlight") &&
             !flick.rightButton.classList.contains("flick-button-highlight")) {
             flick.ready = true;
+            flick.stimulusElem.innerHTML = '+';
         }
     },
 
@@ -86,7 +88,7 @@ const flick = {
 
     onCrossing: () => { },
 
-    trialStart: (callOnStart, callOnCrossing) => {
+    trialStart: (isLeft, callOnStart, callOnCrossing) => {
         flick.clearListeners();
         flick.onCrossing = callOnCrossing;
         flick.ready = false;
@@ -123,8 +125,8 @@ const flick = {
                     } else {
                         flick.highlightRemove2(respButton);
                     }
-                    flick.touchId[respSide] = e.changedTouches[0].identifier;
-                    flick.getCoords(e, 7, isLeft, respSide);
+                    flick.touchId[respSide] = ev.changedTouches[0].identifier;
+                    flick.getCoords(ev, 7, isLeft, respSide);
                     if (flick.ready) {
                         clearTimeout(flick.warningTO);
                         flick.goTO = setTimeout(() => {
@@ -138,9 +140,9 @@ const flick = {
                         }, 500);
                     }
 
-                    document.ontouchmove = startMove;
-                    document.ontouchend = startEnd;
-                    document.ontouchcancel = startEnd;
+                    document.ontouchmove = flick.startMove;
+                    document.ontouchend = flick.startEnd;
+                    document.ontouchcancel = flick.startEnd;
 
                 }
             };
@@ -202,7 +204,7 @@ const flick = {
     getCoords: (event, type, isLeft) => {
         event.preventDefault();
         for (const currentTouch of event.changedTouches) {
-            const side = flick.touchId[touch.identifier] || null;
+            const side = flick.touchId[currentTouch.identifier] || null;
 
             // store relative coordinates
             if (side && (performance.now() - flick.startTime) < (flick.maxTrialDuration + 100)) {
@@ -218,6 +220,7 @@ const flick = {
                 (currentTouch.clientX >= flick.rightLine && (!isLeft))) {
                 flick.clearListeners();
                 flick.stimulusElem.textContent = '';
+                let crossingData = {};
                 if (side) {
                     const lastTouchData = flick.trialData[flick.trialData.length - 2];
                     const currentTouchData = flick.trialData[flick.trialData.length - 1];
@@ -254,14 +257,21 @@ const flick = {
         return Math.round(number * 100) / 100;
     },
 
-    roundData: function(data) {
-        return (data.map(elem => {
-            elem[0] = flick.roundTo2(elem[0]);
-            elem[1] = flick.roundTo2(elem[1]);
-            elem[2] = flick.roundTo2(elem[2]);
-            return (elem);
-        }));
+    roundData: function(dataObj) {
+        // Loop over each key in the data object
+        Object.keys(dataObj).forEach(key => {
+            // Map over each array and round each element
+            dataObj[key] = dataObj[key].map(elem => {
+                return [
+                    flick.roundTo2(elem[0]),
+                    flick.roundTo2(elem[1]),
+                    flick.roundTo2(elem[2])
+                ];
+            });
+        });
+        return dataObj;
     }
+
 };
 
 Object.seal(flick);

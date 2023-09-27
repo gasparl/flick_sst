@@ -175,30 +175,6 @@
         </p>
 
         <p>
-            Like this:
-        </p>
-
-        <div class="flick-frame-class flick-frame-demo" style="background-color: red;">
-            <div class="flick-stim-class">←</div>
-            <div class="stop-class">STOP!</div>
-            <div class="flick-left-line flick-line"></div>
-            <div class="flick-right-line flick-line"></div>
-            <button class="flick-button-circle"></button>
-        </div>
-
-        <p>
-            Or like this:
-        </p>
-
-        <div class="flick-frame-class flick-frame-demo" style="background-color: red;">
-            <div class="flick-stim-class">→</div>
-            <div class="stop-class">STOP!</div>
-            <div class="flick-left-line flick-line"></div>
-            <div class="flick-right-line flick-line"></div>
-            <button class="flick-button-circle"></button>
-        </div>
-
-        <p>
             When this happens, please try your best to stop your response on that trial.
             It is normal and expected if you will not always be able to successfully stop when a stop signal
             appears. However, if you continue to try hard, you
@@ -245,12 +221,13 @@
 
     <div id="task_id" style="display:none;">
 
+
+        <div id="flick-warning">Touch the button<span class='finger_2' style="display: none;">s</span> to continue.
+        </div>
         <div class="flick-stim-class" id="flick-stimulus"></div>
         <div class="stop-class" id="stop-signal">STOP!</div>
 
         <div class="flick-frame-class" id="flick-frame">
-
-            <div id="flick-warning">Touch the button<span class='finger_2' style="display: none;">s</span> to continue.</div>
 
             <div class="flick-left-line flick-line" id="flick-left-line"></div>
             <div class="flick-right-line flick-line" id="flick-right-line"></div>
