@@ -237,6 +237,7 @@ const run_trial = () => {
 
 
 const callOnCrossing = (crossInfo) => {
+    fullscreen_on();
     trialInfo.cross_time = crossInfo.time;
     if (phase === "practice") {
         store_trial();

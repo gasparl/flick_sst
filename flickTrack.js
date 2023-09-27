@@ -49,7 +49,7 @@ const flick = {
     warnTouch: () => {
         clearTimeout(flick.goTO);
         Object.keys(flick.trialData).forEach(key => {
-            if (flick.touchId[key]) {
+            if (!flick.touchId[key]) {
                 flick[key + 'Button'].classList.add('flick-button-highlight');
                 flick[key + 'Button'].innerHTML = '❗';
             }
@@ -109,9 +109,9 @@ const flick = {
             respButton.ontouchend = null;
 
             respButton.ontouchstart = function(ev) {
-                fullscreen_on();
-                // Remember starting point
-                ev.preventDefault();
+                if (ev.cancelable) {
+                    ev.preventDefault();
+                }
                 console.log('Touch started.');
                 const startTouch = ev.touches[0];
                 const buttonRect = respButton.getBoundingClientRect();
@@ -149,17 +149,18 @@ const flick = {
     },
 
     startMove: (event) => {
-        event.preventDefault();
-
+        if (event.cancelable) {
+            event.preventDefault();
+        }
         for (const touch of event.touches) {
             // Check if the touch matches either left or right identifier
-            const side = flick.touchId[touch.identifier] || null;
+            const side = Object.entries(flick.touchId).find(([, id]) => id === touch.identifier)?.[0] || null;
             if (side) {
                 const touchStayedIn = flick.isPointInCircle(touch, flick[side + 'Button'].getBoundingClientRect());
                 if (!touchStayedIn) {
                     console.log(`Touch moved out of ${side} button.`);
-                    flick.warnTouch();
                     flick.touchId[side] = null;
+                    flick.warnTouch();
                 } else {
                     const relativeX = touch.clientX - flick.xCenter;
                     const relativeY = flick.yCenter - touch.clientY;
@@ -167,29 +168,20 @@ const flick = {
                 }
             }
         }
-        if (Object.values(flick.touchId).every(value => value === null)) {
-            document.ontouchmove = null;
-        }
     },
 
     startEnd: (event) => {
-        event.preventDefault();
-
+        if (event.cancelable) {
+            event.preventDefault();
+        }
         for (const touch of event.changedTouches) {
-            const side = flick.touchId[touch.identifier] || null;
+            const side = Object.entries(flick.touchId).find(([, id]) => id === touch.identifier)?.[0] || null;
             if (side) {
-                const touchStayedIn = flick.isPointInCircle(touch, flick[side + 'Button'].getBoundingClientRect());
-                if (!touchStayedIn) {
-                    console.log(`Touch moved out of ${side} button.`);
-                    flick.warnTouch();
-                    flick.touchId[side] = null;
-                }
+                console.log(`Touch of ${side} button ended.`);
+                flick.touchId[side] = null;
+                flick.warnTouch();
             }
         }
-        if (Object.values(flick.touchId).every(value => value === null)) {
-            document.ontouchmove = null;
-        }
-
     },
 
     getFramePos: () => {
@@ -202,7 +194,9 @@ const flick = {
     },
 
     getCoords: (event, type, isLeft) => {
-        event.preventDefault();
+        if (event.cancelable) {
+            event.preventDefault();
+        }
         for (const currentTouch of event.changedTouches) {
             const side = flick.touchId[currentTouch.identifier] || null;
 
