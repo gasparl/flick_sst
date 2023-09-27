@@ -87,6 +87,15 @@ const flick = {
 
     onCrossing: () => { },
 
+    isTouchInButton: (respSide) => {
+        const touch = Array.from(document.touches || []).find(t => t.identifier === flick.touchId[respSide]);
+        if (touch) {
+            return flick.isPointInCircle(touch, flick[respSide + 'Button'].getBoundingClientRect());
+        }
+        return false;
+    },
+
+
     trialStart: (isLeft, callOnStart, callOnCrossing) => {
         flick.clearListeners();
         flick.onCrossing = callOnCrossing;
@@ -105,7 +114,7 @@ const flick = {
         btnList.forEach(respButtonObj => {
             const respButton = respButtonObj.btn;
             const respSide = respButtonObj.side;
-            if (!flick.touchId[respSide]) {
+            if (isTouchInButton(respSide)) {
                 respButton.classList.add('flick-button-highlight');
             }
             respButton.ontouchmove = null;
