@@ -34,6 +34,7 @@ const flick = {
     maxTrialDuration: 5000,
     startTime: undefined,
     touchId: {},
+    sideId: {},
     isSingle: false,
 
     clearListeners: () => {
@@ -67,7 +68,6 @@ const flick = {
     },
 
     highlightRemove2: (btn) => {
-        flick.stimulusElem.textContent = 'REMOVE' + performance.now();
         btn.textContent = '';
         document.getElementById('flick-warning').style.display = 'none';
         btn.classList.remove('flick-button-highlight');
@@ -105,7 +105,9 @@ const flick = {
         btnList.forEach(respButtonObj => {
             const respButton = respButtonObj.btn;
             const respSide = respButtonObj.side;
-            respButton.classList.add('flick-button-highlight');
+            if (!flick.touchId[respSide]) {
+                respButton.classList.add('flick-button-highlight');
+            }
             respButton.ontouchmove = null;
             respButton.ontouchend = null;
 
@@ -126,6 +128,12 @@ const flick = {
                         flick.highlightRemove2(respButton);
                     }
                     flick.touchId[respSide] = ev.changedTouches[0].identifier;
+                    Object.keys(flick.sideId).forEach(key => {
+                        if (flick.sideId[key] === respSide) {
+                            delete flick.sideId[key];
+                        }
+                    });
+                    flick.sideId[ev.changedTouches[0].identifier] = respSide;
                     flick.getCoords(ev, 7, isLeft, respSide);
                     if (flick.ready) {
                         clearTimeout(flick.warningTO);
@@ -153,18 +161,18 @@ const flick = {
         if (event.cancelable) {
             event.preventDefault();
         }
-        for (const touch of event.changedTouches) {
+        for (const currentTouch of event.changedTouches) {
             // Check if the touch matches either left or right identifier
-            const side = Object.entries(flick.touchId).find(([, id]) => id === touch.identifier)?.[0] || null;
+            const side = flick.sideId[currentTouch.identifier] || null;
             if (side) {
-                const touchStayedIn = flick.isPointInCircle(touch, flick[side + 'Button'].getBoundingClientRect());
+                const touchStayedIn = flick.isPointInCircle(currentTouch, flick[side + 'Button'].getBoundingClientRect());
                 if (!touchStayedIn) {
                     console.log(`Touch moved out of ${side} button.`);
                     flick.touchId[side] = null;
                     flick.warnTouch();
                 } else {
-                    const relativeX = touch.clientX - flick.xCenter;
-                    const relativeY = flick.yCenter - touch.clientY;
+                    const relativeX = currentTouch.clientX - flick.xCenter;
+                    const relativeY = flick.yCenter - currentTouch.clientY;
                     flick.trialData[side].push([event.timeStamp, relativeX, relativeY, 0]);
                 }
             }
@@ -175,8 +183,8 @@ const flick = {
         if (event.cancelable) {
             event.preventDefault();
         }
-        for (const touch of event.changedTouches) {
-            const side = Object.entries(flick.touchId).find(([, id]) => id === touch.identifier)?.[0] || null;
+        for (const currentTouch of event.changedTouches) {
+            const side = flick.sideId[currentTouch.identifier] || null;
             if (side) {
                 console.log(`Touch of ${side} button ended.`);
                 flick.touchId[side] = null;
@@ -199,7 +207,7 @@ const flick = {
             event.preventDefault();
         }
         for (const currentTouch of event.changedTouches) {
-            const side = flick.touchId[currentTouch.identifier] || null;
+            const side = flick.sideId[currentTouch.identifier] || null;
 
             // store relative coordinates
             if (side && (performance.now() - flick.startTime) < (flick.maxTrialDuration + 100)) {
