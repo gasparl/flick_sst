@@ -52,16 +52,16 @@ const flick = {
         Object.keys(flick.trialData).forEach(key => {
             if (!flick.touchId[key]) {
                 flick[key + 'Button'].classList.add('flick-button-highlight');
-                flick[key + 'Button'].innerHTML = '❗';
+                flick[key + 'Button'].textContent = '❗';
             }
         });
         document.getElementById('flick-warning').style.display = 'block';
-        flick.stimulusElem.innerHTML = '';
+        flick.stimulusElem.textContent = '';
     },
 
     highlightRemove1: () => {
-        flick.singleButton.innerHTML = '';
-        flick.stimulusElem.innerHTML = '+';
+        flick.singleButton.textContent = '';
+        flick.stimulusElem.textContent = '+';
         document.getElementById('flick-warning').style.display = 'none';
         flick.singleButton.classList.remove('flick-button-highlight');
         flick.ready = true;
@@ -74,7 +74,7 @@ const flick = {
         if (!flick.leftButton.classList.contains("flick-button-highlight") &&
             !flick.rightButton.classList.contains("flick-button-highlight")) {
             flick.ready = true;
-            flick.stimulusElem.innerHTML = '+';
+            flick.stimulusElem.textContent = '+';
         }
     },
 
