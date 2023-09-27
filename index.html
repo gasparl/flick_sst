@@ -170,7 +170,8 @@
 
     <div id="instructions2_sst" class="longtext" style="display:none;">
         <p>
-            For the rest of the task, on some trials, very shortly after the left or right arrow appears, a "STOP!" message will appear below the arrow.
+            For the rest of the task, on some trials, very shortly after the left or right arrow appears, a "STOP!"
+            message will appear below the arrow.
         </p>
 
         <p>
@@ -247,14 +248,17 @@
         <div class="flick-stim-class" id="flick-stimulus"></div>
         <div class="stop-class" id="stop-signal">STOP!</div>
 
-        <div class="flick-frame-class">
-            <div class="flick-left-line flick-line"></div>
-            <div class="flick-right-line flick-line"></div>
+        <div class="flick-frame-class" id="flick-frame">
+
+            <div id="flick-warning">Touch the button<span class='finger_2' style="display: none;">s</span> to continue.</div>
+
+            <div class="flick-left-line flick-line" id="flick-left-line"></div>
+            <div class="flick-right-line flick-line" id="flick-right-line"></div>
 
             <div class="flick-buttons-wrapper">
                 <button class="flick-button-left flick-button-class" id="flick-button-left"></button>
                 <button class="flick-button-right flick-button-class" id="flick-button-right"></button>
-                <button class="flick-button-right flick-button-class" id="flick-button-single"></button>
+                <button class="flick-button-single flick-button-class" id="flick-button-single"></button>
             </div>
         </div>
 

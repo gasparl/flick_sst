@@ -2,8 +2,7 @@
 /*jshint esversion: 6 */
 
 // define global variables
-let text_to_show, faulty,
-    input_time, allstims, f_name, cross_time;
+let allstims, f_name;
 let start_div = "intro_id", // default: intro_id | instructions_id | task_id | end_id
     trialnum = 0,
     startclicked = false,
@@ -52,11 +51,11 @@ const consent = function() {
     misc.consented = flick.roundTo2(performance.now());
     misc.design = get_radio('design'); // 1 or 2
     misc.task = get_radio('task'); // sst or flank
+    flick.isSingle = misc.design === '1';
 
     document.getElementById('intro_id').style.display = 'none';
     window.scrollTo(0, 0);
 
-    fullscreen_on();
     keep_state();
     DT.loopOn();
     orientationWarning(true);
@@ -86,12 +85,12 @@ const consent = function() {
 };
 
 const begin = function() {
+    fullscreen_on();
     allstims = stim[misc.task]();
     allstims = shuffle(allstims);
     document.getElementById('instructions1').style.display = 'none';
     document.getElementById('instructions2_' + misc.task).style.display = 'none';
     document.getElementById('task_id').style.display = 'block';
-    fullscreen_on();
     next_trial();
 };
 
@@ -145,7 +144,7 @@ const stim = {
                 stim.item = centralArrow;
             }
             // Determine the correct response based on the direction of the central arrow.
-            stim.correctSide = centralArrow === '→' ? "right" : "left";
+            stim.direction = centralArrow === '→' ? "right" : "left";
         });
 
         // Handle extra logic for different phases
@@ -199,7 +198,7 @@ const stim = {
         }
 
         allstims.map((stim) => {
-            stim.correctSide = stim.item === "→" ? "right" : "left";
+            stim.direction = stim.item === "→" ? "right" : "left";
         });
 
         return allstims;
@@ -210,9 +209,8 @@ const next_trial = function() {
     current_stim = allstims.shift(); // get next stimulus dictionary
     console.log(current_stim); // print info
 
-    flick.trialStartUp(
-        current_stim.correctSide === 'left',
-        misc.design === '1' ? { left: true, right: true } : { top: true },
+    flick.trialStart(
+        current_stim.direction === 'left',
         run_trial,
         callOnCrossing
     );
@@ -228,8 +226,7 @@ const run_trial = () => {
         if (current_stim.ssd && current_stim.ssd > 0) {
             setTimeout(() => {
                 requestAnimationFrame(stamp2 => {
-                    stimulusElem.textContent = 'x ' + stimulusElem.textContent + ' x';
-                    document.getElementById("flick-frame").style.backgroundColor = "red";
+                    document.getElementById("stop-signal").style.display = "block";
                     trialInfo.stopSignal = stamp2;
                 });
 
@@ -245,7 +242,7 @@ const run_trial = () => {
 
 
 const callOnCrossing = (crossInfo) => {
-    cross_time = crossInfo.time;
+    trialInfo.cross_time = crossInfo.time;
     if (phase === "practice") {
         store_trial();
     }
@@ -263,36 +260,33 @@ let full_data = [
     "datetime_id",
     "phase",
     "trial_number",
+    "item",
     "direction",
     "ssd",
-    "cross_time",
+    "trialInfo.cross_time",
     "start",
     "start_noRAF",
     "stopSignal",
-    "ended",
-    "wrong_move",
     "time_now"
 ].join('\t') + '\n';
 
 function store_trial() {
     flick.fullData.push(...flick.trialData);
     stimulusElem.textContent = '';
-    document.getElementById("flick-frame").style.backgroundColor = "";
+    document.getElementById("stop-signal").style.display = "none";
     full_data += [
         misc.date_time,
         phase,
         trialnum,
         current_stim.item,
+        current_stim.direction,
         current_stim.ssd,
-        cross_time,
+        trialInfo.cross_time,
         trialInfo.start,
         trialInfo.start_noRAF,
         trialInfo.stopSignal,
-        flick.wrongEnd,
-        flick.wrongMove,
         flick.roundTo2(performance.now())
     ].join('\t') + '\n';
-    faulty = { ended: 0, wrong_move: 0 };
     if (allstims.length > 0) {
         next_trial();
     } else if (phase === "practice") {
@@ -312,6 +306,7 @@ function ending() {
         document.getElementById('task_id').style.display = 'none';
         document.getElementById('end_id').style.display = 'block';
     }, 1000);
+    orientationWarning(false);
     flick.fullData = flick.roundData(flick.fullData);
     f_name = 'flick_pilot_' + misc.task + '_' + jscd.os + '_' +
         jscd.browser + '_' + misc.date_time + '_' + misc.userid + '.txt';
