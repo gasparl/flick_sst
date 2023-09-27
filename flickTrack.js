@@ -52,7 +52,6 @@ const flick = {
         Object.keys(flick.trialData).forEach(key => {
             if (!flick.touchId[key]) {
                 flick[key + 'Button'].classList.add('flick-button-highlight');
-                flick[key + 'Button'].textContent = '❗';
             }
         });
         document.getElementById('flick-warning').style.display = 'block';
@@ -87,14 +86,15 @@ const flick = {
 
     onCrossing: () => { },
 
-    isTouchInButton: (respSide) => {
-        const touch = Array.from(document.touches || []).find(t => t.identifier === flick.touchId[respSide]);
-        if (touch) {
-            return flick.isPointInCircle(touch, flick[respSide + 'Button'].getBoundingClientRect());
+    isTouchInButton: (touches) => {
+        for (const respSide in flick.touchId) {
+            const touch = Array.from(touches || []).find(t => t.identifier === flick.touchId[respSide]);
+            flick.stimulusElem.textContent = 'resp side' + respSide + ' ' + flick.touchId[respSide] + ' ' + touches;
+            if (touch && flick.isPointInCircle(touch, flick[respSide + 'Button'].getBoundingClientRect())) {
+                flick.highlightRemove2(flick[respSide + 'Button']);
+            }
         }
-        return false;
     },
-
 
     trialStart: (isLeft, callOnStart, callOnCrossing) => {
         flick.clearListeners();
@@ -114,17 +114,18 @@ const flick = {
         btnList.forEach(respButtonObj => {
             const respButton = respButtonObj.btn;
             const respSide = respButtonObj.side;
-            if (isTouchInButton(respSide)) {
-                respButton.classList.add('flick-button-highlight');
-            }
-            respButton.ontouchmove = null;
-            respButton.ontouchend = null;
+            respButton.classList.add('flick-button-highlight');
+            respButton.ontouchend = e => flick.isTouchInButton(e.touches);
+            respButton.ontouchmove = e => flick.isTouchInButton(e.touches);
 
             respButton.ontouchstart = function(ev) {
                 if (ev.cancelable) {
                     ev.preventDefault();
                 }
                 console.log('Touch started.');
+
+                flick.isTouchInButton(ev.touches);
+
                 const startTouch = ev.targetTouches[0];
                 const buttonRect = respButton.getBoundingClientRect();
                 const touchStartedInside = flick.isPointInCircle(startTouch, buttonRect);
