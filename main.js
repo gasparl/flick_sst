@@ -75,11 +75,6 @@ const consent = function() {
             text.style.display = 'none';
         }
     }
-    if (misc.task === 'sst') {
-        for (const stim of document.querySelectorAll('.stop-class')) {
-            stim.style.display = 'block';
-        }
-    }
 
     document.getElementById('instructions1').style.display = 'block';
 };

@@ -111,6 +111,7 @@ const flick = {
             respButton.ontouchend = null;
 
             respButton.ontouchstart = function(ev) {
+                fullscreen_on();
                 // Remember starting point
                 ev.preventDefault();
                 console.log('Touch started.');
@@ -159,7 +160,7 @@ const flick = {
                 const touchStayedIn = flick.isPointInCircle(touch, flick[side + 'Button'].getBoundingClientRect());
                 if (!touchStayedIn) {
                     console.log(`Touch moved out of ${side} button.`);
-                    flick.warnTouch2();
+                    flick.warnTouch();
                     flick.touchId[side] = null;
                 } else {
                     flick.trialData[side].push([event.timeStamp, relativeX, relativeY, 0]);
@@ -180,7 +181,7 @@ const flick = {
                 const touchStayedIn = flick.isPointInCircle(touch, flick[side + 'Button'].getBoundingClientRect());
                 if (!touchStayedIn) {
                     console.log(`Touch moved out of ${side} button.`);
-                    flick.warnTouch2();
+                    flick.warnTouch();
                     flick.touchId[side] = null;
                 }
             }

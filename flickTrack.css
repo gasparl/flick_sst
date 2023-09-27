@@ -47,15 +47,6 @@ html {
     }
 }
 
-.stop-class {
-    font-family: Arial;
-    position: absolute;
-    top: 45px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 35px;
-    display: none;
-}
 
 #flick-warning {
     color: red;

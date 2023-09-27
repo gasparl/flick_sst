@@ -34,6 +34,16 @@ body {
                                     supported by Chrome, Edge, Opera and Firefox */
 }
 
+.stop-class {
+    font-family: Arial;
+    position: absolute;
+    top: 45px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 35px;
+    display: none;
+}
+
 .longtext {
     margin: auto;
     text-align: justify;
