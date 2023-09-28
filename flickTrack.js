@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const flick = {
+    phase: '',
     ready: false,
     stimulusElem: undefined,
     singleButton: undefined,
@@ -29,13 +30,14 @@ const flick = {
     rightLine: undefined,
     warningTO: undefined,
     goTO: undefined,
-    trialData: undefined,
+    trialData: {},
     fullData: { single: [], left: [], right: [] },
     maxTrialDuration: 5000,
     startTime: undefined,
     touchId: {},
     sideId: {},
     isSingle: false,
+    isLeft: undefined,
 
     clearListeners: () => {
         const elements = [document, flick.singleButton, flick.leftButton, flick.rightButton];
@@ -47,33 +49,32 @@ const flick = {
         });
     },
 
-    warnTouch: () => {
+    warnTouch: (btn) => {
         clearTimeout(flick.goTO);
-        Object.keys(flick.trialData).forEach(key => {
-            if (!flick.touchId[key]) {
-                flick[key + 'Button'].classList.add('flick-button-highlight');
-            }
-        });
+        btn.classList.add('flick-button-highlight');
         document.getElementById('flick-warning').style.display = 'block';
         flick.stimulusElem.textContent = '';
     },
 
-    highlightRemove1: () => {
-        flick.singleButton.textContent = '';
-        flick.stimulusElem.textContent = '+';
-        document.getElementById('flick-warning').style.display = 'none';
-        flick.singleButton.classList.remove('flick-button-highlight');
-        flick.ready = true;
-    },
-
-    highlightRemove2: (btn) => {
-        btn.textContent = '';
-        document.getElementById('flick-warning').style.display = 'none';
-        btn.classList.remove('flick-button-highlight');
-        if (!flick.leftButton.classList.contains("flick-button-highlight") &&
-            !flick.rightButton.classList.contains("flick-button-highlight")) {
-            flick.ready = true;
+    highlightRemove: (btn) => {
+        clearTimeout(flick.warningTO);
+        if (flick.isSingle) {
+            flick.singleButton.textContent = '';
             flick.stimulusElem.textContent = '+';
+            document.getElementById('flick-warning').style.display = 'none';
+            flick.singleButton.classList.remove('flick-button-highlight');
+            flick.ready = true;
+        }
+        else {
+            btn.textContent = '';
+            document.getElementById('flick-warning').style.display = 'none';
+            btn.classList.remove('flick-button-highlight');
+            if (!flick.leftButton.classList.contains("flick-button-highlight") &&
+                !flick.rightButton.classList.contains("flick-button-highlight")) {
+                flick.ready = true;
+                flick.stimulusElem.textContent = '+';
+            }
+
         }
     },
 
@@ -87,17 +88,66 @@ const flick = {
     onStart: () => { },
     onCrossing: () => { },
 
-    isTouchInButton: (touches) => {
-        for (const respSide in flick.touchId) {
-            const touch = Array.from(touches || []).find(t => t.identifier === flick.touchId[respSide]);
-            if (touch && flick.isPointInCircle(touch, flick[respSide + 'Button'].getBoundingClientRect())) {
-                flick.highlightRemove2(flick[respSide + 'Button']);
+    touchHandle: (event) => {
+        if (event.cancelable) {
+            event.preventDefault();
+        }
+        for (const currentTouch of event.changedTouches) {
+
+            // check if identifier is assigned to a side
+            const side = flick.sideId[currentTouch.identifier] || null;
+
+            // if yes, store the change
+            if (side) {
+                if (flick.phase === 'ongoing') {
+                    const relativeX = currentTouch.clientX - flick.xCenter;
+                    const relativeY = flick.yCenter - currentTouch.clientY;
+                    // event type: 0 for start, 1 for move, 2 for end, 3 for cancel
+                    const touchType = event.type === 'touchmove' ? 1 : (event.type === 'touchstart' ? 0 : (event.type === 'touchend' ? 2 : 3));
+                    flick.trialData[side].push([event.timeStamp, relativeX, relativeY, touchType]);
+                }
+                if (touchType === 2 || touchType === 3) {
+                    flick.touchId[side] = null;
+                    flick.sideId[currentTouch.identifier] = null;
+                    if (flick.phase === 'start') {
+                        flick.warnTouch();
+                    }
+                } else if (flick.phase === 'start') {
+                    // check if the touch is in the corresponding button
+                    const respButton = flick[side + 'Button'];
+                    const isInButton = flick.isPointInCircle(currentTouch, respButton.getBoundingClientRect());
+                    // if not, highlight the button
+                    if (!isInButton) {
+                        flick.warnTouch(respButton);
+                    } else {
+                        flick.highlightRemove(respButton);
+                    }
+                }
+            } else {
+                // if not, check if the touch is in a button
+                Object.keys(trialData).forEach(respSide => {
+                    const respButton = flick[respSide + 'Button'];
+                    if (event.type === 'touchstart' || event.type === 'touchmove') {
+                        const isInButton = flick.isPointInCircle(currentTouch, respButton.getBoundingClientRect());
+                        if (isInButton) {
+                            flick.touchId[respSide] = currentTouch.identifier;
+                            Object.keys(flick.sideId).forEach(key => {
+                                if (flick.sideId[key] === respSide) {
+                                    delete flick.sideId[key];
+                                }
+                            });
+                            flick.sideId[currentTouch.identifier] = respSide;
+                            if (flick.phase === 'ongoing') {
+                                const relativeX = currentTouch.clientX - flick.xCenter;
+                                const relativeY = flick.yCenter - currentTouch.clientY;
+                                const touchType = event.type === 'touchstart' ? 0 : 1;
+                                flick.trialData[side].push([event.timeStamp, relativeX, relativeY, touchType]);
+                            }
+                        }
+                    }
+                });
             }
         }
-    },
-
-    touchHandle: (event) => {
-        //TODO
     },
 
     sessionStart: (callOnStart, callOnCrossing) => {
@@ -110,6 +160,7 @@ const flick = {
     },
 
     trialStart: (isLeft, callOnStart = null, callOnCrossing = null) => {
+        flick.isLeft = isLeft;
         flick.clearListeners();
         if (typeof callOnStart === 'function') {
             flick.onStart = callOnStart;
@@ -117,112 +168,36 @@ const flick = {
         if (typeof callOnCrossing === 'function') {
             flick.onCrossing = callOnCrossing;
         }
-        flick.ready = false;
         flick.trialData = flick.isSingle ? { single: [] } : { left: [], right: [] };
         flick.getFramePos();
         flick.warningTO = setTimeout(() => {
-            if (!flick.ready) {
+            if (!flick.ready) { // TODO
                 flick.warnTouch();
             }
         }, 5000);
         flick.stimulusElem.textContent = '+';
 
-        const btnList = flick.isSingle ? [{ side: 'single', btn: flick.singleButton }] :
-            [{ side: 'left', btn: flick.leftButton }, { side: 'right', btn: flick.rightButton }];
-        btnList.forEach(respButtonObj => {
-            const respButton = respButtonObj.btn;
-            const respSide = respButtonObj.side;
-            respButton.classList.add('flick-button-highlight');
-            respButton.ontouchend = null;
-            respButton.ontouchmove = e => flick.buttonStarts(e, respButton, respSide, isLeft, callOnStart);
-            respButton.ontouchstart = e => flick.buttonStarts(e, respButton, respSide, isLeft, callOnStart);
+        Object.keys(trialData).forEach(respSide => {
+            // TODO
+            flick[respSide + 'Button'].classList.add('flick-button-highlight');
+            // respButton.ontouchend = null;
+            // respButton.ontouchmove = e => flick.buttonStarts(e, respButton, respSide, isLeft, callOnStart);
+            // respButton.ontouchstart = e => flick.buttonStarts(e, respButton, respSide, isLeft, callOnStart);
         });
+
+        setGoTO();
     },
 
-    buttonStarts: (ev, respButton, respSide, isLeft, callOnStart) => {
-        if (ev.cancelable) {
-            ev.preventDefault();
-        }
-        clearTimeout(flick.goTO);
-        console.log('Touch started.');
-
-        flick.isTouchInButton(ev.touches);
-
-        const startTouch = ev.targetTouches[0];
-        const buttonRect = respButton.getBoundingClientRect();
-        const touchStartedInside = flick.isPointInCircle(startTouch, buttonRect);
-        // If touch started inside the button
-        if (touchStartedInside) {
-            // console.log('Touch started inside the button.');
-            if (flick.isSingle) {
-                flick.highlightRemove1();
-            } else {
-                flick.highlightRemove2(respButton);
-            }
-            flick.touchId[respSide] = ev.changedTouches[0].identifier;
-            Object.keys(flick.sideId).forEach(key => {
-                if (flick.sideId[key] === respSide) {
-                    delete flick.sideId[key];
-                }
-            });
-            flick.sideId[ev.changedTouches[0].identifier] = respSide;
-            flick.getCoords(ev, 7, isLeft, respSide);
-            if (flick.ready) {
-                clearTimeout(flick.warningTO);
-                flick.goTO = setTimeout(() => {
-                    flick.startTime = performance.now();
-                    flick.ready = false;
-                    flick.clearListeners();
-                    flick.getFramePos();
-                    document.ontouchmove = e => flick.getCoords(e, 1, isLeft);
-                    document.ontouchend = e => flick.getCoords(e, 8, isLeft);
-                    document.ontouchcancel = e => flick.getCoords(e, 9, isLeft);
-                    callOnStart();
-                }, 500);
-            }
-
-            document.ontouchmove = flick.startMove;
-            document.ontouchend = flick.startEnd;
-            document.ontouchcancel = flick.startEnd;
-
-        }
-    },
-
-    // TODO startMove and startEnd: should only activate after the first touch has been registered
-
-    startMove: (event) => {
-        if (event.cancelable) {
-            event.preventDefault();
-        }
-        for (const currentTouch of event.changedTouches) {
-            // Check if the touch matches either left or right identifier
-            const side = flick.sideId[currentTouch.identifier] || null;
-            if (side) {
-                const touchStayedIn = flick.isPointInCircle(currentTouch, flick[side + 'Button'].getBoundingClientRect());
-                if (!touchStayedIn) {
-                    console.log(`Touch moved out of ${side} button.`);
-                    flick.touchId[side] = null;
-                    flick.warnTouch();
-                } else {
-                    const relativeX = currentTouch.clientX - flick.xCenter;
-                    const relativeY = flick.yCenter - currentTouch.clientY;
-                    flick.trialData[side].push([event.timeStamp, relativeX, relativeY, 0]);
-                }
-            }
-        }
-    },
-
-    startEnd: (event) => {
-        if (event.cancelable) {
-            event.preventDefault();
-        }
-        for (const currentTouch of event.changedTouches) {
-            const side = flick.sideId[currentTouch.identifier] || null;
-            if (side) {
-                console.log(`Touch of ${side} button ended.`);
-                flick.touchId[side] = null;
-                flick.warnTouch();
-            }
+    setGoTO: () => {
+        if (flick.ready) {
+            clearTimeout(flick.warningTO);
+            flick.goTO = setTimeout(() => {
+                flick.startTime = performance.now();
+                flick.phase = 'ongoing';
+                flick.clearListeners();
+                flick.getFramePos();
+                flick.onStart();
+            }, 500);
         }
     },
 
