@@ -84,6 +84,7 @@ const flick = {
         return distance <= rect.width / 2;
     },
 
+    onStart: () => { },
     onCrossing: () => { },
 
     isTouchInButton: (touches) => {
@@ -95,9 +96,27 @@ const flick = {
         }
     },
 
-    trialStart: (isLeft, callOnStart, callOnCrossing) => {
-        flick.clearListeners();
+    touchHandle: (event) => {
+        //TODO
+    },
+
+    sessionStart: (callOnStart, callOnCrossing) => {
+        flick.onStart = callOnStart;
         flick.onCrossing = callOnCrossing;
+        document.ontouchstart = flick.touchHandle;
+        document.ontouchmove = flick.touchHandle;
+        document.ontouchend = flick.touchHandle;
+        document.ontouchcancel = flick.touchHandle;
+    },
+
+    trialStart: (isLeft, callOnStart = null, callOnCrossing = null) => {
+        flick.clearListeners();
+        if (typeof callOnStart === 'function') {
+            flick.onStart = callOnStart;
+        }
+        if (typeof callOnCrossing === 'function') {
+            flick.onCrossing = callOnCrossing;
+        }
         flick.ready = false;
         flick.trialData = flick.isSingle ? { single: [] } : { left: [], right: [] };
         flick.getFramePos();
