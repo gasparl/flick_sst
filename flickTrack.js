@@ -40,12 +40,8 @@ const flick = {
     isLeft: undefined,
 
     clearListeners: () => {
-        const elements = [document, flick.singleButton, flick.leftButton, flick.rightButton];
-        const events = ['ontouchmove', 'ontouchend', 'ontouchstart', 'ontouchcancel'];
-        elements.forEach(element => {
-            events.forEach(event => {
-                element[event] = null;
-            });
+        ['ontouchmove', 'ontouchend', 'ontouchstart', 'ontouchcancel'].forEach(event => {
+            document[event] = null;
         });
     },
 
@@ -74,7 +70,6 @@ const flick = {
                 flick.ready = true;
                 flick.stimulusElem.textContent = '+';
             }
-
         }
     },
 
@@ -157,6 +152,9 @@ const flick = {
         document.ontouchmove = flick.touchHandle;
         document.ontouchend = flick.touchHandle;
         document.ontouchcancel = flick.touchHandle;
+        Object.keys(trialData).forEach(respSide => {
+            flick[respSide + 'Button'].classList.add('flick-button-highlight');
+        });
     },
 
     trialStart: (isLeft, callOnStart = null, callOnCrossing = null) => {
@@ -171,20 +169,11 @@ const flick = {
         flick.trialData = flick.isSingle ? { single: [] } : { left: [], right: [] };
         flick.getFramePos();
         flick.warningTO = setTimeout(() => {
-            if (!flick.ready) { // TODO
+            if (flick.phase === 'start' && !flick.ready) {
                 flick.warnTouch();
             }
         }, 5000);
         flick.stimulusElem.textContent = '+';
-
-        Object.keys(trialData).forEach(respSide => {
-            // TODO
-            flick[respSide + 'Button'].classList.add('flick-button-highlight');
-            // respButton.ontouchend = null;
-            // respButton.ontouchmove = e => flick.buttonStarts(e, respButton, respSide, isLeft, callOnStart);
-            // respButton.ontouchstart = e => flick.buttonStarts(e, respButton, respSide, isLeft, callOnStart);
-        });
-
         setGoTO();
     },
 
@@ -197,7 +186,7 @@ const flick = {
                 flick.clearListeners();
                 flick.getFramePos();
                 flick.onStart();
-            }, 500);
+            }, 400);
         }
     },
 
