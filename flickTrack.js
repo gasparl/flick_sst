@@ -91,8 +91,6 @@ const flick = {
             const touch = Array.from(touches || []).find(t => t.identifier === flick.touchId[respSide]);
             if (touch && flick.isPointInCircle(touch, flick[respSide + 'Button'].getBoundingClientRect())) {
                 flick.highlightRemove2(flick[respSide + 'Button']);
-            } else {
-
             }
         }
     },
@@ -170,6 +168,8 @@ const flick = {
 
         }
     },
+
+    // TODO startMove and startEnd: should only activate after the first touch has been registered
 
     startMove: (event) => {
         if (event.cancelable) {
