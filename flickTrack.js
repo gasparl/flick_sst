@@ -87,6 +87,7 @@ const flick = {
         if (event.cancelable) {
             event.preventDefault();
         }
+        console.log("touched");
         for (const currentTouch of event.changedTouches) {
 
             // check if identifier is assigned to a side
@@ -152,14 +153,13 @@ const flick = {
         document.ontouchmove = flick.touchHandle;
         document.ontouchend = flick.touchHandle;
         document.ontouchcancel = flick.touchHandle;
-        Object.keys(trialData).forEach(respSide => {
+        flick.isSingle ? ['single'] : ['left', 'right'].forEach(respSide => {
             flick[respSide + 'Button'].classList.add('flick-button-highlight');
         });
     },
 
     trialStart: (isLeft, callOnStart = null, callOnCrossing = null) => {
         flick.isLeft = isLeft;
-        flick.clearListeners();
         if (typeof callOnStart === 'function') {
             flick.onStart = callOnStart;
         }
@@ -174,7 +174,7 @@ const flick = {
             }
         }, 5000);
         flick.stimulusElem.textContent = '+';
-        setGoTO();
+        flick.setGoTO();
     },
 
     setGoTO: () => {
@@ -183,7 +183,6 @@ const flick = {
             flick.goTO = setTimeout(() => {
                 flick.startTime = performance.now();
                 flick.phase = 'ongoing';
-                flick.clearListeners();
                 flick.getFramePos();
                 flick.onStart();
             }, 400);
@@ -218,7 +217,6 @@ const flick = {
             // Detect if touch crosses the lines
             if ((currentTouch.clientX <= flick.leftLine && isLeft) ||
                 (currentTouch.clientX >= flick.rightLine && (!isLeft))) {
-                flick.clearListeners();
                 flick.stimulusElem.textContent = '';
                 let crossingData = {};
                 if (side) {

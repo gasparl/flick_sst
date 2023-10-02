@@ -35,6 +35,11 @@ document.addEventListener("DOMContentLoaded", function() {
     flick.maxTrialDuration = time_limit;
 });
 
+const queryString = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    misc.demo = urlParams.get('demo');
+};
+
 
 const cancel = function() {
     // TODO
@@ -86,6 +91,7 @@ const begin = function() {
     document.getElementById('instructions1').style.display = 'none';
     document.getElementById('instructions2_' + misc.task).style.display = 'none';
     document.getElementById('task_id').style.display = 'block';
+    flick.sessionStart(run_trial, callOnCrossing);
     next_trial();
 };
 
@@ -205,9 +211,7 @@ const next_trial = function() {
     console.log(current_stim); // print info
 
     flick.trialStart(
-        current_stim.direction === 'left',
-        run_trial,
-        callOnCrossing
+        current_stim.direction === 'left'
     );
 };
 
@@ -292,8 +296,10 @@ function store_trial() {
             phase = "main";
             document.getElementById('task_id').style.display = 'none';
             document.getElementById('instructions2_' + misc.task).style.display = 'block';
+            flick.clearListeners();
         }, 500);
     } else {
+        flick.clearListeners();
         ending();
     }
 }

@@ -128,6 +128,9 @@ const fullscreen_off = function() {
 
 // function for assigning what happens depending on whether fullscreen is on
 const fullscreen_state = function(on = () => { }, off = () => { }) {
+    if (misc.demo) {
+        return;
+    }
     if (document.fullscreenElement || document.mozFullScreenElement ||
         document.webkitFullscreenElement || document.msFullscreenElement) {
         on();
