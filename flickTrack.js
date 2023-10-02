@@ -45,9 +45,12 @@ const flick = {
         });
     },
 
-    warnTouch: (btn) => {
+    warnTouch: (btn = null) => {
         clearTimeout(flick.goTO);
-        btn.classList.add('flick-button-highlight');
+        if (btn) {
+            btn.classList.add('flick-button-highlight');
+        }
+        // maybe later: highlight immediately when not in button
         document.getElementById('flick-warning').style.display = 'block';
         flick.stimulusElem.textContent = '';
     },
@@ -87,7 +90,6 @@ const flick = {
         if (event.cancelable) {
             event.preventDefault();
         }
-        console.log("touched");
         for (const currentTouch of event.changedTouches) {
 
             // check if identifier is assigned to a side
@@ -95,18 +97,18 @@ const flick = {
 
             // if yes, store the change
             if (side) {
+                const touchType = event.type === 'touchmove' ? 1 : (event.type === 'touchstart' ? 0 : (event.type === 'touchend' ? 2 : 3));
                 if (flick.phase === 'ongoing') {
                     const relativeX = currentTouch.clientX - flick.xCenter;
                     const relativeY = flick.yCenter - currentTouch.clientY;
                     // event type: 0 for start, 1 for move, 2 for end, 3 for cancel
-                    const touchType = event.type === 'touchmove' ? 1 : (event.type === 'touchstart' ? 0 : (event.type === 'touchend' ? 2 : 3));
                     flick.trialData[side].push([event.timeStamp, relativeX, relativeY, touchType]);
                 }
                 if (touchType === 2 || touchType === 3) {
                     flick.touchId[side] = null;
                     flick.sideId[currentTouch.identifier] = null;
                     if (flick.phase === 'start') {
-                        flick.warnTouch();
+                        flick.warnTouch(flick[side + 'Button']);
                     }
                 } else if (flick.phase === 'start') {
                     // check if the touch is in the corresponding button
@@ -121,7 +123,7 @@ const flick = {
                 }
             } else {
                 // if not, check if the touch is in a button
-                Object.keys(trialData).forEach(respSide => {
+                Object.keys(flick.trialData).forEach(respSide => {
                     const respButton = flick[respSide + 'Button'];
                     if (event.type === 'touchstart' || event.type === 'touchmove') {
                         const isInButton = flick.isPointInCircle(currentTouch, respButton.getBoundingClientRect());
